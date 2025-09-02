@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Image from 'next/image'
+import Link from 'next/link'
 import { breedWithCharacter } from './actions'
 
 // This component remains the same
@@ -52,7 +53,7 @@ export default async function BreedingPage() {
 
   return (
     <div style={{ padding: '20px' }}>
-      <a href="/" style={{ textDecoration: 'underline' }}>&larr; 홈으로 돌아가기</a>
+      <Link href="/" style={{ textDecoration: 'underline' }}>&larr; 홈으로 돌아가기</Link>
       <h1 style={{ textAlign: 'center', marginTop: '10px' }}>교배 상대 선택</h1>
       <p style={{ textAlign: 'center' }}>다른 사용자의 캐릭터와 교배하여 새로운 캐릭터를 얻어보세요. (하루 1회)</p>
 
@@ -60,7 +61,7 @@ export default async function BreedingPage() {
       {(!profile?.latitude || !profile.longitude) ? (
         <div style={{ textAlign: 'center', marginTop: '50px' }}>
           <p>주변 캐릭터를 찾으려면 먼저 위치 정보를 업데이트해야 합니다.</p>
-          <a href="/" style={{ textDecoration: 'underline' }}>홈으로 이동하여 위치를 업데이트하세요.</a>
+          <Link href="/" style={{ textDecoration: 'underline' }}>홈으로 이동하여 위치를 업데이트하세요.</Link>
         </div>
       ) : nearbyCharacters && nearbyCharacters.length > 0 ? (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '15px', marginTop: '30px' }}>
