@@ -79,9 +79,9 @@ export async function performWalk() {
     }
   }
   
-  let message = '산책 완료!';
+  let message = '시원한 바람을 맞으며 이니스와 함께 들판을 달렸다.';
   if (affectionIncreased) {
-    message += '\n유대감이 1 증가했습니다!\n이니스의 기분이 매우 좋아졌습니다 !';
+    message += '\n이니스 기분이 매우 좋아졌습니다 ! (유대감 +1)';
   }
   return { success: true, message: message };
 }
@@ -114,9 +114,18 @@ export async function performConversation() {
     }
   }
 
-  let message = '대화 완료!';
+  const everydayMessages = [
+    '이니스는 오늘 날씨가 좋다고 말했다.',
+    '이니스는 어제 본 드라마 이야기를 해줬다.',
+    '이니스는 김치찌개는 맛이없다고 말해줬다.',
+    '이니스는 오늘 저녁으로 뭘 먹을지 고민했다.',
+  ];
+
+  let message = '';
   if (affectionIncreased) {
-    message += '\n유대감이 1 증가했습니다!\n이니스의 기분이 매우 좋아졌습니다 !';
+    message = '이니스와 진심을 이야기 해주었다. (유대감 +1)';
+  } else {
+    message = everydayMessages[Math.floor(Math.random() * everydayMessages.length)];
   }
   return { success: true, message: message };
 }
@@ -160,14 +169,16 @@ export async function performBattle() {
   const maxTurns = 20
 
   while (userHealth > 0 && opponentHealth > 0 && turn <= maxTurns) {
-    let turnMessage = `--- 턴 ${turn} ---\n`;
+    let turnMessage = `--- 턴 ${turn} ---
+`;
 
     const userAction = getBattleAction(userChar.affection)
     turnMessage += `내 이니스 행동: ${userAction}`
     if (userAction === 'attack') {
       const damage = Math.max(0, userCalculatedStats.attack_power - opponentCalculatedStats.defense_defense)
       opponentHealth -= damage
-      turnMessage += `\n상대에게 ${damage}의 데미지!`
+      turnMessage += `
+상대에게 ${damage}의 데미지!`
     } else {
       turnMessage += '\n아무 일도 일어나지 않았다.'
     }
@@ -179,7 +190,8 @@ export async function performBattle() {
     if (opponentAction === 'attack') {
       const damage = Math.max(0, opponentCalculatedStats.attack_power - userCalculatedStats.defense_defense)
       userHealth -= damage
-      turnMessage += `\n내게 ${damage}의 데미지!`
+      turnMessage += `
+내게 ${damage}의 데미지!`
     } else {
       turnMessage += '\n아무 일도 일어나지 않았다.'
     }
