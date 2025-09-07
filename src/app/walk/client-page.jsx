@@ -1,22 +1,42 @@
 'use client'
 
-import { useActionState, useEffect, useRef } from 'react'
+import { useActionState, useEffect, useRef, useState } from 'react'
 import { useFormStatus } from 'react-dom'
 import { performWalk } from '../daily-actions'
 import Link from 'next/link'
-import { default as NextImage } from 'next/image'
+import { createClient } from '@/lib/supabase/client'
+import AnimatedInis from '../AnimatedInis'
 
 export default function WalkPage() {
   const [state, formAction] = useActionState(performWalk, { success: false, message: '' })
   const { pending } = useFormStatus()
   const formRef = useRef(null)
+  const [imageUrl, setImageUrl] = useState(null)
+
+  useEffect(() => {
+    const fetchCharacterImage = async () => {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        const { data: userCharacter } = await supabase
+          .from('user_characters')
+          .select('characters(image_url)')
+          .eq('user_id', user.id)
+          .single()
+        
+        if (userCharacter && userCharacter.characters) {
+          setImageUrl(userCharacter.characters.image_url)
+        }
+      }
+    }
+
+    fetchCharacterImage()
+  }, [])
 
   useEffect(() => {
     if (state.success || state.message) {
-      // Display message in the UI, not alert
-      // For now, we'll just update the state and display it below
       if (formRef.current) {
-        formRef.current.reset() // Reset form after action
+        formRef.current.reset()
       }
     }
   }, [state])
@@ -27,8 +47,14 @@ export default function WalkPage() {
       <h1 style={{ marginTop: '20px' }}>산책하기</h1>
       <p style={{ marginBottom: '20px' }}>이니스와 함께 산책하며 유대감을 쌓아보세요. (하루 1회)</p>
 
-      <div style={{ margin: '20px 0' }}>
-        <NextImage src="/walk.svg" alt="Walking" width={100} height={100} style={{ display: 'inline-block' }} />
+      <div style={{ margin: '20px auto', width: '150px', height: '150px' }}>
+        {imageUrl ? (
+          <AnimatedInis imageUrl={imageUrl} />
+        ) : (
+          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px dashed #ccc', borderRadius: '8px' }}>
+            <p>로딩 중...</p>
+          </div>
+        )}
       </div>
 
       <form action={formAction} ref={formRef}>
