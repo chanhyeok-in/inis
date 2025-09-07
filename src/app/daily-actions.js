@@ -130,10 +130,46 @@ export async function performConversation() {
   return { success: true, message: message };
 }
 
-export async function performBattle() {
+export async function performBattle(prevState, formData) {
   const supabase = getSupabaseServerClient();
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { success: false, message: '로그인되지 않습니다.' }
+
+  const battleMode = formData.get('battleMode');
+  let opponentId = null;
+
+  if (battleMode === 'nearby') {
+    opponentId = formData.get('opponentId');
+    if (!opponentId) {
+      return { success: false, message: '전투할 상대를 선택해주세요.' };
+    }
+  } else if (battleMode === 'random') {
+    const { data: userCharacterLink } = await supabase.from('user_characters').select('character_id').eq('user_id', user.id).single()
+    if (!userCharacterLink) return { success: false, message: '사용자 캐릭터를 찾을 수 없습니다.' }
+
+    const { data: userChar } = await supabase.from('characters').select('level').eq('id', userCharacterLink.character_id).single()
+    if (!userChar) return { success: false, message: '사용자 캐릭터 스탯을 불러올 수 없습니다.' }
+
+    const userLevel = userChar.level;
+    const levelTolerance = 2; // Opponent level within +/- 2 of user's level
+
+    const { data: potentialOpponents, error: oppError } = await supabase
+      .from('user_characters')
+      .select('user_id, characters(level)')
+      .neq('user_id', user.id) // Exclude current user
+      .gte('characters.level', userLevel - levelTolerance)
+      .lte('characters.level', userLevel + levelTolerance);
+
+    if (oppError || !potentialOpponents || potentialOpponents.length === 0) {
+      return { success: false, message: '랜덤 전투 상대를 찾을 수 없습니다. 나중에 다시 시도해주세요.' };
+    }
+
+    const randomOpponent = potentialOpponents[Math.floor(Math.random() * potentialOpponents.length)];
+    opponentId = randomOpponent.user_id;
+
+  } else {
+    return { success: false, message: '유효하지 않은 전투 모드입니다.' };
+  }
 
   const { data: profile, error: profileError } = await supabase.from('profiles').select('battle_count, last_daily_reset').eq('id', user.id).single()
   if (profileError || !profile) return { success: false, message: '프로필을 찾을 수 없습니다.' }
@@ -149,15 +185,31 @@ export async function performBattle() {
   const { data: userChar } = await supabase.from('characters').select('image_url, level, attack_stat, defense_stat, health_stat, recovery_stat, affection').eq('id', userCharacterLink.character_id).single()
   if (!userChar) return { success: false, message: '사용자 캐릭터 스탯을 불러올 수 없습니다.' }
 
+  // Fetch opponent's character data
+  const { data: opponentCharacterLink, error: oppCharLinkError } = await supabase
+    .from('user_characters')
+    .select('character_id')
+    .eq('user_id', opponentId)
+    .single();
+
+  if (oppCharLinkError || !opponentCharacterLink) {
+    return { success: false, message: '선택한 상대의 캐릭터를 찾을 수 없습니다.' };
+  }
+
+  const { data: opponentCharData, error: oppCharError } = await supabase
+    .from('characters')
+    .select('name, image_url, level, attack_stat, defense_stat, health_stat, recovery_stat, affection')
+    .eq('id', opponentCharacterLink.character_id)
+    .single();
+
+  if (oppCharError || !opponentCharData) {
+    return { success: false, message: '선택한 상대의 캐릭터 스탯을 불러올 수 없습니다.' };
+  }
+
   await supabase.from('profiles').update({ battle_count: updatedProfile.battle_count + 1 }).eq('id', user.id)
 
   const userCalculatedStats = calculateInisStats(userChar)
-  const opponentChar = {
-    id: 999, name: '야생 이니스', level: userChar.level, attack_stat: Math.max(1, userChar.attack_stat + Math.floor(Math.random() * 11) - 5),
-    defense_stat: Math.max(1, userChar.defense_stat + Math.floor(Math.random() * 11) - 5), health_stat: Math.max(1, userChar.health_stat + Math.floor(Math.random() * 11) - 5),
-    recovery_stat: Math.max(1, userChar.recovery_stat + Math.floor(Math.random() * 11) - 5), affection: Math.floor(Math.random() * 10000) + 1, image_url: '/globe.svg',
-  }
-  const opponentCalculatedStats = calculateInisStats(opponentChar)
+  const opponentCalculatedStats = calculateInisStats(opponentCharData)
 
   let userHealth = userCalculatedStats.max_health;
   let opponentHealth = opponentCalculatedStats.max_health;
@@ -169,7 +221,8 @@ export async function performBattle() {
   const maxTurns = 20
 
   while (userHealth > 0 && opponentHealth > 0 && turn <= maxTurns) {
-    let turnMessage = `--- 턴 ${turn} ---\n`;
+    let turnMessage = `--- 턴 ${turn} ---
+`;
 
     const userAction = getBattleAction(userChar.affection)
     turnMessage += `내 이니스 행동: ${userAction}`
@@ -183,7 +236,7 @@ export async function performBattle() {
     battleLog.push({ message: turnMessage, userHealth, opponentHealth: Math.max(0, opponentHealth) });
     if (opponentHealth <= 0) break;
 
-    const opponentAction = getBattleAction(opponentChar.affection)
+    const opponentAction = getBattleAction(opponentCharData.affection)
     turnMessage = `상대 이니스 행동: ${opponentAction}`
     if (opponentAction === 'attack') {
       const damage = Math.max(0, opponentCalculatedStats.attack_power - userCalculatedStats.defense_defense)
@@ -221,7 +274,7 @@ export async function performBattle() {
     success: true,
     battleData: {
       userChar: { ...userChar, current_health: userCalculatedStats.max_health },
-      opponentChar: { ...opponentChar, current_health: opponentCalculatedStats.max_health },
+      opponentChar: { ...opponentCharData, current_health: opponentCalculatedStats.max_health },
       battleLog,
       didWin,
       affectionIncreased,

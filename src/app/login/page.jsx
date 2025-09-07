@@ -22,7 +22,16 @@ export default function LoginPage() {
       <div style={{ width: '400px' }}>
         <Auth
           supabaseClient={supabase}
-          appearance={{ theme: ThemeSupa }}
+          appearance={{
+            theme: ThemeSupa,
+            variables: {
+              default: {
+                colors: {
+                  inputText: 'white',
+                },
+              },
+            },
+          }}
           providers={[]}
         />
       </div>

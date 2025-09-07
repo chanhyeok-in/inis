@@ -34,7 +34,7 @@ export default function LocationUpdater() {
     <div style={{ border: '1px solid #eee', padding: '15px', borderRadius: '8px', marginTop: '20px' }}>
       <h4>위치 정보</h4>
       <p style={{ fontSize: '12px', color: '#666' }}>
-        주변 사용자와 교배하려면 현재 위치를 업데이트해야 합니다.
+        주변 사용자와 대결하려면 현재 위치를 업데이트해야 합니다.
       </p>
       <button onClick={handleLocationUpdate} disabled={status === 'updating'}>
         {status === 'updating' ? '업데이트 중...' : '내 위치 업데이트하기'}

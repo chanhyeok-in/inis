@@ -39,7 +39,7 @@ export default async function Home() {
       </div>
 
       <h1>My Inis</h1>
-      <p>내가 보유한 캐릭터 목록</p>
+      <p>내가 보유한 Inis</p>
       
       <div style={{ marginTop: '30px', minHeight: '250px', display: 'flex', justifyContent: 'center', gap: '10px', flexWrap: 'wrap' }}>
         {userCharacters && userCharacters.length > 0 ? (
