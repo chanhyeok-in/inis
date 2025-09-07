@@ -26,7 +26,7 @@ export default function BattleScene({ battleData }) {
         </div>
         <div style={{ fontSize: '24px', fontWeight: 'bold' }}>VS</div>
         <div>
-          <h2>상대 이니스</h2>
+          <h2>{opponentChar.name}</h2>
           <NextImage src={opponentChar.image_url} alt="Opponent Inis" width={150} height={150} style={{ border: '2px solid red', borderRadius: '8px' }} />
           <p>체력: {currentLogEntry.opponentHealth}</p>
         </div>

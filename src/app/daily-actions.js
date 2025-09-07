@@ -89,7 +89,7 @@ export async function performWalk() {
 export async function performConversation() {
   const supabase = getSupabaseServerClient();
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { success: false, message: '로그인되지 않았습니다.' }
+  if (!user) return { success: false, message: '로그인되지 않습니다.' }
 
   const { data: profile, error: profileError } = await supabase.from('profiles').select('conversation_count, last_daily_reset').eq('id', user.id).single()
   if (profileError || !profile) return { success: false, message: '프로필을 찾을 수 없습니다.' }
@@ -133,7 +133,7 @@ export async function performConversation() {
 export async function performBattle() {
   const supabase = getSupabaseServerClient();
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { success: false, message: '로그인되지 않았습니다.' }
+  if (!user) return { success: false, message: '로그인되지 않습니다.' }
 
   const { data: profile, error: profileError } = await supabase.from('profiles').select('battle_count, last_daily_reset').eq('id', user.id).single()
   if (profileError || !profile) return { success: false, message: '프로필을 찾을 수 없습니다.' }
@@ -153,7 +153,7 @@ export async function performBattle() {
 
   const userCalculatedStats = calculateInisStats(userChar)
   const opponentChar = {
-    id: 999, level: userChar.level, attack_stat: Math.max(1, userChar.attack_stat + Math.floor(Math.random() * 11) - 5),
+    id: 999, name: '야생 이니스', level: userChar.level, attack_stat: Math.max(1, userChar.attack_stat + Math.floor(Math.random() * 11) - 5),
     defense_stat: Math.max(1, userChar.defense_stat + Math.floor(Math.random() * 11) - 5), health_stat: Math.max(1, userChar.health_stat + Math.floor(Math.random() * 11) - 5),
     recovery_stat: Math.max(1, userChar.recovery_stat + Math.floor(Math.random() * 11) - 5), affection: Math.floor(Math.random() * 10000) + 1, image_url: '/globe.svg',
   }
@@ -169,16 +169,14 @@ export async function performBattle() {
   const maxTurns = 20
 
   while (userHealth > 0 && opponentHealth > 0 && turn <= maxTurns) {
-    let turnMessage = `--- 턴 ${turn} ---
-`;
+    let turnMessage = `--- 턴 ${turn} ---\n`;
 
     const userAction = getBattleAction(userChar.affection)
     turnMessage += `내 이니스 행동: ${userAction}`
     if (userAction === 'attack') {
       const damage = Math.max(0, userCalculatedStats.attack_power - opponentCalculatedStats.defense_defense)
       opponentHealth -= damage
-      turnMessage += `
-상대에게 ${damage}의 데미지!`
+      turnMessage += `\n상대에게 ${damage}의 데미지!`
     } else {
       turnMessage += '\n아무 일도 일어나지 않았다.'
     }
@@ -190,8 +188,7 @@ export async function performBattle() {
     if (opponentAction === 'attack') {
       const damage = Math.max(0, opponentCalculatedStats.attack_power - userCalculatedStats.defense_defense)
       userHealth -= damage
-      turnMessage += `
-내게 ${damage}의 데미지!`
+      turnMessage += `\n내게 ${damage}의 데미지!`
     } else {
       turnMessage += '\n아무 일도 일어나지 않았다.'
     }
