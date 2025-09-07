@@ -1,7 +1,6 @@
 import { getSupabaseServerClient } from '@/lib/supabase/server-utils'
 import { redirect } from 'next/navigation'
 import AnimatedInis from './AnimatedInis'
-import LocationUpdater from './LocationUpdater'
 import { calculateInisStats } from '@/lib/inis/stats';
 
 export default async function Home() {
@@ -17,14 +16,14 @@ export default async function Home() {
     .from('user_characters')
     .select(`
       id,
+      level,
+      attack_stat,
+      defense_stat,
+      health_stat,
+      recovery_stat,
+      affection,
       characters (
-        image_url,
-        level,
-        attack_stat,
-        defense_stat,
-        health_stat,
-        recovery_stat,
-        affection
+        image_url
       )
     `)
     .eq('user_id', user.id)
@@ -46,25 +45,25 @@ export default async function Home() {
           userCharacters.map(uc => (
             <div key={uc.id}>
               <AnimatedInis imageUrl={uc.characters.image_url} />
-              {uc.characters && (
+              {uc && (
                 <>
                   {(() => {
                     const calculatedStats = calculateInisStats({
-                      level: uc.characters.level,
-                      attack_stat: uc.characters.attack_stat,
-                      defense_stat: uc.characters.defense_stat,
-                      health_stat: uc.characters.health_stat,
-                      recovery_stat: uc.characters.recovery_stat,
-                      affection: uc.characters.affection,
+                      level: uc.level,
+                      attack_stat: uc.attack_stat,
+                      defense_stat: uc.defense_stat,
+                      health_stat: uc.health_stat,
+                      recovery_stat: uc.recovery_stat,
+                      affection: uc.affection,
                     });
                     return (
                       <div style={{ fontSize: '12px', marginTop: '5px' }}>
-                        <p>레벨: {uc.characters.level}</p>
+                        <p>레벨: {uc.level}</p>
                         <p>공격력: {calculatedStats.attack_power}</p>
                         <p>방어력: {calculatedStats.defense_power}</p>
                         <p>체력: {calculatedStats.max_health}</p>
                         <p>회복력: {calculatedStats.recovery_power}</p>
-                        <p>유대감: {uc.characters.affection}</p>
+                        <p>유대감: {uc.affection}</p>
                       </div>
                     );
                   })()}
@@ -78,8 +77,6 @@ export default async function Home() {
           </div>
         )}
       </div>
-
-      <LocationUpdater />
 
       <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'center', gap: '10px' }}>
         <a href="/walk" style={{ padding: '10px 20px', background: '#4CAF50', color: 'white', borderRadius: '5px', textDecoration: 'none' }}>

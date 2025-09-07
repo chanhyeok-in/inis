@@ -144,22 +144,18 @@ export async function performBattle(prevState, formData) {
       return { success: false, message: '전투할 상대를 선택해주세요.' };
     }
   } else if (battleMode === 'random') {
-    const { data: userCharacterLink } = await supabase.from('user_characters').select('character_id').eq('user_id', user.id).single()
+    const { data: userCharacterLink } = await supabase.from('user_characters').select('character_id, level').eq('user_id', user.id).single()
     if (!userCharacterLink) return { success: false, message: '사용자 캐릭터를 찾을 수 없습니다.' }
 
-    const { data: userChar } = await supabase.from('characters').select('level').eq('id', userCharacterLink.character_id).single()
-    if (!userChar) return { success: false, message: '사용자 캐릭터 스탯을 불러올 수 없습니다.' }
-
-    const userLevel = userChar.level;
+    const userLevel = userCharacterLink.level;
     const levelTolerance = 2; // Opponent level within +/- 2 of user's level
 
-    // Filter directly on the related 'characters' table
     const { data: potentialOpponents, error: oppError } = await supabase
       .from('user_characters')
-      .select('user_id, characters(level)')
+      .select('user_id, level')
       .neq('user_id', user.id) // Exclude current user
-      .filter('characters.level', 'gte', userLevel - levelTolerance)
-      .filter('characters.level', 'lte', userLevel + levelTolerance);
+      .gte('level', userLevel - levelTolerance)
+      .lte('level', userLevel + levelTolerance);
 
     if (oppError || !potentialOpponents || potentialOpponents.length === 0) {
       return { success: false, message: '랜덤 전투 상대를 찾을 수 없습니다. 나중에 다시 시도해주세요.' };
@@ -180,16 +176,15 @@ export async function performBattle(prevState, formData) {
   const { data: updatedProfile } = await supabase.from('profiles').select('battle_count').eq('id', user.id).single()
   if (updatedProfile.battle_count >= 1) return { success: false, message: '오늘은 이미 전투를 했습니다.' }
 
-  const { data: userCharacterLink } = await supabase.from('user_characters').select('character_id').eq('user_id', user.id).single()
+  const { data: userCharacterLink } = await supabase.from('user_characters').select('character_id, level, attack_stat, defense_stat, health_stat, recovery_stat, affection').eq('user_id', user.id).single()
   if (!userCharacterLink) return { success: false, message: '사용자 캐릭터를 찾을 수 없습니다.' }
 
-  const { data: userChar } = await supabase.from('characters').select('image_url, level, attack_stat, defense_stat, health_stat, recovery_stat, affection').eq('id', userCharacterLink.character_id).single()
-  if (!userChar) return { success: false, message: '사용자 캐릭터 스탯을 불러올 수 없습니다.' }
+  const userChar = userCharacterLink; // userChar now directly contains stats from user_characters
 
   // Fetch opponent's character data
   const { data: opponentCharacterLink, error: oppCharLinkError } = await supabase
     .from('user_characters')
-    .select('character_id')
+    .select('character_id, name, image_url, level, attack_stat, defense_stat, health_stat, recovery_stat, affection')
     .eq('user_id', opponentId)
     .single();
 
@@ -197,15 +192,7 @@ export async function performBattle(prevState, formData) {
     return { success: false, message: '선택한 상대의 캐릭터를 찾을 수 없습니다.' };
   }
 
-  const { data: opponentCharData, error: oppCharError } = await supabase
-    .from('characters')
-    .select('name, image_url, level, attack_stat, defense_stat, health_stat, recovery_stat, affection')
-    .eq('id', opponentCharacterLink.character_id)
-    .single();
-
-  if (oppCharError || !opponentCharData) {
-    return { success: false, message: '선택한 상대의 캐릭터 스탯을 불러올 수 없습니다.' };
-  }
+  const opponentCharData = opponentCharacterLink; // opponentCharData now directly contains stats from user_characters
 
   await supabase.from('profiles').update({ battle_count: updatedProfile.battle_count + 1 }).eq('id', user.id)
 
@@ -222,8 +209,7 @@ export async function performBattle(prevState, formData) {
   const maxTurns = 20
 
   while (userHealth > 0 && opponentHealth > 0 && turn <= maxTurns) {
-    let turnMessage = `--- 턴 ${turn} ---
-`;
+    let turnMessage = `--- 턴 ${turn} ---\n`;
 
     const userAction = getBattleAction(userChar.affection)
     turnMessage += `내 이니스 행동: ${userAction}`

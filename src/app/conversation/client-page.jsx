@@ -20,7 +20,15 @@ export default function ConversationPage() {
       if (user) {
         const { data: userCharacter } = await supabase
           .from('user_characters')
-          .select('characters(image_url)')
+          .select(`
+            characters(image_url),
+            level,
+            attack_stat,
+            defense_stat,
+            health_stat,
+            recovery_stat,
+            affection
+          `)
           .eq('user_id', user.id)
           .single()
         
