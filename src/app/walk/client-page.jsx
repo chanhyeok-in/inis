@@ -4,6 +4,7 @@ import { useActionState, useEffect, useRef } from 'react'
 import { useFormStatus } from 'react-dom'
 import { performWalk } from '../daily-actions'
 import Link from 'next/link'
+import { default as NextImage } from 'next/image'
 
 export default function WalkPage() {
   const [state, formAction] = useActionState(performWalk, { success: false, message: '' })
@@ -27,7 +28,7 @@ export default function WalkPage() {
       <p style={{ marginBottom: '20px' }}>이니스와 함께 산책하며 유대감을 쌓아보세요. (하루 1회)</p>
 
       <div style={{ margin: '20px 0' }}>
-        <Image src="/walk.svg" alt="Walking" width={100} height={100} style={{ display: 'inline-block' }} />
+        <NextImage src="/walk.svg" alt="Walking" width={100} height={100} style={{ display: 'inline-block' }} />
       </div>
 
       <form action={formAction} ref={formRef}>

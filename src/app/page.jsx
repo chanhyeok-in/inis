@@ -1,9 +1,8 @@
 import { getSupabaseServerClient } from '@/lib/supabase/server-utils'
 import { redirect } from 'next/navigation'
-import Image from 'next/image'
+import AnimatedInis from './AnimatedInis'
 import LocationUpdater from './LocationUpdater'
 import { calculateInisStats } from '@/lib/inis/stats';
-import { performWalk, performConversation, performBattle } from './daily-actions';
 
 export default async function Home() {
   const supabase = getSupabaseServerClient()
@@ -14,7 +13,6 @@ export default async function Home() {
     redirect('/login')
   }
 
-  // Fetch the user's character(s)
   const { data: userCharacters } = await supabase
     .from('user_characters')
     .select(`
@@ -47,15 +45,7 @@ export default async function Home() {
         {userCharacters && userCharacters.length > 0 ? (
           userCharacters.map(uc => (
             <div key={uc.id}>
-              <Image
-                src={uc.characters.image_url}
-                alt="My Character"
-                width={150}
-                height={150}
-                priority
-                style={{ border: '1px solid #ccc', borderRadius: '8px' }}
-              />
-              {/* Display Stats */}
+              <AnimatedInis imageUrl={uc.characters.image_url} />
               {uc.characters && (
                 <>
                   {(() => {
@@ -102,8 +92,6 @@ export default async function Home() {
           전투하기
         </a>
       </div>
-
-      
     </div>
   )
 }

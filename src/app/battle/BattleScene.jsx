@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import Image from 'next/image'
+import { default as NextImage } from 'next/image'
 
 export default function BattleScene({ battleData }) {
   const { userChar, opponentChar, battleLog, didWin, affectionIncreased } = battleData
@@ -21,13 +21,13 @@ export default function BattleScene({ battleData }) {
       <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center', padding: '20px', border: '1px solid #333', borderRadius: '10px', background: '#f9f9f9' }}>
         <div>
           <h2>내 이니스</h2>
-          <Image src={userChar.image_url} alt="My Inis" width={150} height={150} style={{ border: '2px solid blue', borderRadius: '8px' }} />
+          <NextImage src={userChar.image_url} alt="My Inis" width={150} height={150} style={{ border: '2px solid blue', borderRadius: '8px' }} />
           <p>체력: {currentLogEntry.userHealth}</p>
         </div>
         <div style={{ fontSize: '24px', fontWeight: 'bold' }}>VS</div>
         <div>
           <h2>상대 이니스</h2>
-          <Image src={opponentChar.image_url} alt="Opponent Inis" width={150} height={150} style={{ border: '2px solid red', borderRadius: '8px' }} />
+          <NextImage src={opponentChar.image_url} alt="Opponent Inis" width={150} height={150} style={{ border: '2px solid red', borderRadius: '8px' }} />
           <p>체력: {currentLogEntry.opponentHealth}</p>
         </div>
       </div>

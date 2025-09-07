@@ -4,6 +4,7 @@ import { useActionState, useEffect, useRef } from 'react'
 import { useFormStatus } from 'react-dom'
 import { performConversation } from '../daily-actions'
 import Link from 'next/link'
+import { default as NextImage } from 'next/image'
 
 export default function ConversationPage() {
   const [state, formAction] = useActionState(performConversation, { success: false, message: '' })
@@ -26,7 +27,7 @@ export default function ConversationPage() {
       <p style={{ marginBottom: '20px' }}>이니스와 대화하며 유대감을 쌓아보세요. (하루 3회)</p>
 
       <div style={{ margin: '20px 0' }}>
-        <Image src="/conversation.svg" alt="Conversation" width={100} height={100} style={{ display: 'inline-block' }} />
+        <NextImage src="/conversation.svg" alt="Conversation" width={100} height={100} style={{ display: 'inline-block' }} />
       </div>
 
       <form action={formAction} ref={formRef}>
