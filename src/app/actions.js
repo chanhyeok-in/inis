@@ -1,12 +1,12 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { getSupabaseServerClient } from '@/lib/supabase/server-utils'
 import { cookies } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 
-export async function updateLocation(latitude: number, longitude: number) {
+export async function updateLocation(latitude, longitude) {
   const cookieStore = cookies()
-  const supabase = createClient(cookieStore)
+  const supabase = getSupabaseServerClient()
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
@@ -26,5 +26,5 @@ export async function updateLocation(latitude: number, longitude: number) {
 
   // Revalidate paths that might show location data
   revalidatePath('/')
-  revalidatePath('/breeding')
+  
 }

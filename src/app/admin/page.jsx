@@ -1,9 +1,9 @@
-import { createClient } from '@/lib/supabase/server'
+import { getSupabaseServerClient } from '@/lib/supabase/server-utils'
 import { redirect } from 'next/navigation'
 import UploadForm from './UploadForm' // We will create this component next
 
 export default async function AdminPage() {
-  const supabase = createClient()
+  const supabase = getSupabaseServerClient()
 
   const { data: { user } } = await supabase.auth.getUser()
 

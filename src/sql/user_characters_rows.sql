@@ -1,0 +1,1 @@
+INSERT INTO "public"."user_characters" ("id", "user_id", "character_id", "created_at") VALUES ('5', '87571730-9f56-4862-95e5-f3bd687e5a57', '1', '2025-09-02 03:42:48.267589+00');

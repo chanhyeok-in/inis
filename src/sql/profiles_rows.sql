@@ -1,0 +1,1 @@
+INSERT INTO "public"."profiles" ("id", "username", "last_bred_at", "role", "latitude", "longitude") VALUES ('5f482149-ea64-4aa1-b2bf-179c73c9414b', null, null, 'admin', '37.4836097719061', '127.019087564823'), ('87571730-9f56-4862-95e5-f3bd687e5a57', 'it1845@gsitm.com', null, 'user', null, null);

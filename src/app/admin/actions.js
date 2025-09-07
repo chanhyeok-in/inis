@@ -1,10 +1,10 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { getSupabaseServerClient } from '@/lib/supabase/server-utils'
 import { revalidatePath } from 'next/cache'
 
-export async function uploadCharacter(prevState: { message: string }, formData: FormData) {
-  const supabase = createClient()
+export async function uploadCharacter(prevState, formData) {
+  const supabase = getSupabaseServerClient()
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
@@ -16,8 +16,8 @@ export async function uploadCharacter(prevState: { message: string }, formData: 
     return { message: '오류: 관리자 권한이 없습니다.' }
   }
 
-  const image = formData.get('image') as File
-  const traits = formData.get('traits') as string
+  const image = formData.get('image')
+  const traits = formData.get('traits')
 
   if (!image || image.size === 0) {
     return { message: '오류: 이미지를 선택해주세요.' }
@@ -52,6 +52,12 @@ export async function uploadCharacter(prevState: { message: string }, formData: 
       image_url: publicUrl,
       generation: 1,
       traits: parsedTraits,
+      level: 4,
+      attack_stat: 1,
+      defense_stat: 1,
+      health_stat: 1,
+      recovery_stat: 1,
+      affection: 1,
     },
   ])
 
