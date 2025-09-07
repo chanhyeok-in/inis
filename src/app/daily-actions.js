@@ -78,7 +78,12 @@ export async function performWalk() {
       }
     }
   }
-  return { success: true, message: affectionIncreased ? '산책 완료! 유대감이 1 증가했습니다!' : '산책 완료!' }
+  
+  let message = '산책 완료!';
+  if (affectionIncreased) {
+    message += '\n유대감이 1 증가했습니다!\n이니스의 기분이 매우 좋아졌습니다 !';
+  }
+  return { success: true, message: message };
 }
 
 export async function performConversation() {
@@ -108,7 +113,12 @@ export async function performConversation() {
       }
     }
   }
-  return { success: true, message: affectionIncreased ? '대화 완료! 유대감이 1 증가했습니다!' : '대화 완료!' }
+
+  let message = '대화 완료!';
+  if (affectionIncreased) {
+    message += '\n유대감이 1 증가했습니다!\n이니스의 기분이 매우 좋아졌습니다 !';
+  }
+  return { success: true, message: message };
 }
 
 export async function performBattle() {
@@ -150,16 +160,14 @@ export async function performBattle() {
   const maxTurns = 20
 
   while (userHealth > 0 && opponentHealth > 0 && turn <= maxTurns) {
-    let turnMessage = `--- 턴 ${turn} ---
-`;
+    let turnMessage = `--- 턴 ${turn} ---\n`;
 
     const userAction = getBattleAction(userChar.affection)
     turnMessage += `내 이니스 행동: ${userAction}`
     if (userAction === 'attack') {
-      const damage = Math.max(0, userCalculatedStats.attack_power - opponentCalculatedStats.defense_power)
+      const damage = Math.max(0, userCalculatedStats.attack_power - opponentCalculatedStats.defense_defense)
       opponentHealth -= damage
-      turnMessage += `
-상대에게 ${damage}의 데미지!`
+      turnMessage += `\n상대에게 ${damage}의 데미지!`
     } else {
       turnMessage += '\n아무 일도 일어나지 않았다.'
     }
@@ -169,10 +177,9 @@ export async function performBattle() {
     const opponentAction = getBattleAction(opponentChar.affection)
     turnMessage = `상대 이니스 행동: ${opponentAction}`
     if (opponentAction === 'attack') {
-      const damage = Math.max(0, opponentCalculatedStats.attack_power - userCalculatedStats.defense_power)
+      const damage = Math.max(0, opponentCalculatedStats.attack_power - userCalculatedStats.defense_defense)
       userHealth -= damage
-      turnMessage += `
-내게 ${damage}의 데미지!`
+      turnMessage += `\n내게 ${damage}의 데미지!`
     } else {
       turnMessage += '\n아무 일도 일어나지 않았다.'
     }
