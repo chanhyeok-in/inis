@@ -153,12 +153,13 @@ export async function performBattle(prevState, formData) {
     const userLevel = userChar.level;
     const levelTolerance = 2; // Opponent level within +/- 2 of user's level
 
+    // Filter directly on the related 'characters' table
     const { data: potentialOpponents, error: oppError } = await supabase
       .from('user_characters')
       .select('user_id, characters(level)')
       .neq('user_id', user.id) // Exclude current user
-      .gte('characters.level', userLevel - levelTolerance)
-      .lte('characters.level', userLevel + levelTolerance);
+      .filter('characters.level', 'gte', userLevel - levelTolerance)
+      .filter('characters.level', 'lte', userLevel + levelTolerance);
 
     if (oppError || !potentialOpponents || potentialOpponents.length === 0) {
       return { success: false, message: '랜덤 전투 상대를 찾을 수 없습니다. 나중에 다시 시도해주세요.' };
