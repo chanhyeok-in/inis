@@ -1,15 +1,15 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
-export function getSupabaseServerClient() {
-  const cookieStore = cookies()
+export async function getSupabaseServerClient() {
+  const cookieStore = await cookies()
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     {
       cookies: {
-        get(name) {
-          return cookieStore.get(name)?.value
+        async get(name) {
+          return (await cookieStore.get(name))?.value
         },
         set(name, value, options) {
           // This is a no-op to prevent issues in Server Components.

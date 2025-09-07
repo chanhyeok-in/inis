@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation'
 import UploadForm from './UploadForm' // We will create this component next
 
 export default async function AdminPage() {
-  const supabase = getSupabaseServerClient()
+  const supabase = await getSupabaseServerClient()
 
   const { data: { user } } = await supabase.auth.getUser()
 

@@ -4,7 +4,7 @@ import AnimatedInis from './AnimatedInis'
 import { calculateInisStats } from '@/lib/inis/stats';
 
 export default async function Home() {
-  const supabase = getSupabaseServerClient()
+  const supabase = await getSupabaseServerClient()
 
   const { data: { user } } = await supabase.auth.getUser()
 

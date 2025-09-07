@@ -2,7 +2,7 @@ import BattleClientPage from './client-page';
 import { getSupabaseServerClient } from '@/lib/supabase/server-utils';
 
 export default async function BattlePageServer() {
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {

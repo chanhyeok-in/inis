@@ -6,7 +6,7 @@ import { revalidatePath } from 'next/cache'
 
 export async function updateLocation(latitude, longitude) {
   const cookieStore = cookies()
-  const supabase = getSupabaseServerClient()
+  const supabase = await getSupabaseServerClient()
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {

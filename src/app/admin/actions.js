@@ -4,7 +4,7 @@ import { getSupabaseServerClient } from '@/lib/supabase/server-utils'
 import { revalidatePath } from 'next/cache'
 
 export async function uploadCharacter(prevState, formData) {
-  const supabase = getSupabaseServerClient()
+  const supabase = await getSupabaseServerClient()
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {

@@ -12,7 +12,7 @@ function getBattleAction(affection) {
     not_listen: 0.25,
   };
 
-  const affectionInfluence = affection * 0.000025;
+  const affectionInfluence = affection * 0.0025; // Corrected from 0.000025 to 0.0025
   let attackProb = baseProbabilities.attack + affectionInfluence;
   let notListenProb = baseProbabilities.not_listen - affectionInfluence;
 
@@ -69,13 +69,19 @@ export async function performWalk() {
 
   let affectionIncreased = false
   if (Math.random() < 0.10) {
-    const { data: userCharacter } = await supabase.from('user_characters').select('character_id').eq('user_id', user.id).single()
+    const { data: userCharacter } = await supabase.from('user_characters').select('character_id, affection').eq('user_id', user.id).single() // Fetch affection from user_characters
     if (userCharacter) {
-      const { data: character } = await supabase.from('characters').select('affection').eq('id', userCharacter.character_id).single()
-      if (character) {
-        const { error: affectionError } = await supabase.from('characters').update({ affection: character.affection + 1 }).eq('id', userCharacter.character_id)
-        if (!affectionError) affectionIncreased = true
+      const newAffection = userCharacter.affection + 1; // Use affection from user_characters
+      console.log(`Attempting to update user_character ${userCharacter.character_id} affection from ${userCharacter.affection} to ${newAffection}`);
+      const { error: affectionError } = await supabase.from('user_characters').update({ affection: newAffection }).eq('character_id', userCharacter.character_id) // Update user_characters
+      if (affectionError) {
+        console.error('Error updating affection:', affectionError);
+      } else {
+        affectionIncreased = true
+        console.log(`Affection updated successfully for user_character ${userCharacter.character_id}`);
       }
+    } else {
+      console.error('User character link not found for affection update.');
     }
   }
   
@@ -104,13 +110,19 @@ export async function performConversation() {
 
   let affectionIncreased = false
   if (Math.random() < 0.10) {
-    const { data: userCharacter } = await supabase.from('user_characters').select('character_id').eq('user_id', user.id).single()
+    const { data: userCharacter } = await supabase.from('user_characters').select('character_id, affection').eq('user_id', user.id).single() // Fetch affection from user_characters
     if (userCharacter) {
-      const { data: character } = await supabase.from('characters').select('affection').eq('id', userCharacter.character_id).single()
-      if (character) {
-        const { error: affectionError } = await supabase.from('characters').update({ affection: character.affection + 1 }).eq('id', userCharacter.character_id)
-        if (!affectionError) affectionIncreased = true
+      const newAffection = userCharacter.affection + 1; // Use affection from user_characters
+      console.log(`Attempting to update user_character ${userCharacter.character_id} affection from ${userCharacter.affection} to ${newAffection}`);
+      const { error: affectionError } = await supabase.from('user_characters').update({ affection: newAffection }).eq('character_id', userCharacter.character_id) // Update user_characters
+      if (affectionError) {
+        console.error('Error updating affection:', affectionError);
+      } else {
+        affectionIncreased = true
+        console.log(`Affection updated successfully for user_character ${userCharacter.character_id}`);
       }
+    } else {
+      console.error('User character link not found for affection update.');
     }
   }
 
@@ -138,6 +150,8 @@ export async function performBattle(prevState, formData) {
   const battleMode = formData.get('battleMode');
   let opponentId = null;
 
+  console.log(`performBattle called with battleMode: ${battleMode}`); // Added log
+
   if (battleMode === 'nearby') {
     opponentId = formData.get('opponentId');
     if (!opponentId) {
@@ -150,19 +164,30 @@ export async function performBattle(prevState, formData) {
     const userLevel = userCharacterLink.level;
     const levelTolerance = 2; // Opponent level within +/- 2 of user's level
 
+    console.log(`User ${user.id} level: ${userLevel}`);
+
     const { data: potentialOpponents, error: oppError } = await supabase
       .from('user_characters')
       .select('user_id, level')
-      .neq('user_id', user.id) // Exclude current user
+      .neq('user_id', user.id)
       .gte('level', userLevel - levelTolerance)
       .lte('level', userLevel + levelTolerance);
 
-    if (oppError || !potentialOpponents || potentialOpponents.length === 0) {
+    if (oppError) {
+      console.error('Error fetching potential opponents:', oppError);
+      return { success: false, message: '랜덤 전투 상대를 찾을 수 없습니다. 나중에 다시 시도해주세요.' };
+    }
+
+    console.log('Potential opponents found:', potentialOpponents);
+
+    if (!potentialOpponents || potentialOpponents.length === 0) {
       return { success: false, message: '랜덤 전투 상대를 찾을 수 없습니다. 나중에 다시 시도해주세요.' };
     }
 
     const randomOpponent = potentialOpponents[Math.floor(Math.random() * potentialOpponents.length)];
     opponentId = randomOpponent.user_id;
+
+    console.log('Selected random opponent:', randomOpponent);
 
   } else {
     return { success: false, message: '유효하지 않은 전투 모드입니다.' };
@@ -209,14 +234,16 @@ export async function performBattle(prevState, formData) {
   const maxTurns = 20
 
   while (userHealth > 0 && opponentHealth > 0 && turn <= maxTurns) {
-    let turnMessage = `--- 턴 ${turn} ---\n`;
+    let turnMessage = `--- 턴 ${turn} ---
+`;
 
     const userAction = getBattleAction(userChar.affection)
     turnMessage += `내 이니스 행동: ${userAction}`
     if (userAction === 'attack') {
       const damage = Math.max(0, userCalculatedStats.attack_power - opponentCalculatedStats.defense_defense)
       opponentHealth -= damage
-      turnMessage += `\n상대에게 ${damage}의 데미지!`
+      turnMessage += `
+상대에게 ${damage}의 데미지!`
     } else {
       turnMessage += '\n아무 일도 일어나지 않았다.'
     }
@@ -228,7 +255,8 @@ export async function performBattle(prevState, formData) {
     if (opponentAction === 'attack') {
       const damage = Math.max(0, opponentCalculatedStats.attack_power - userCalculatedStats.defense_defense)
       userHealth -= damage
-      turnMessage += `\n내게 ${damage}의 데미지!`
+      turnMessage += `
+내게 ${damage}의 데미지!`
     } else {
       turnMessage += '\n아무 일도 일어나지 않았다.'
     }
