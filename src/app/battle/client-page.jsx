@@ -6,27 +6,35 @@ import { performBattle } from '../daily-actions'
 import Link from 'next/link'
 import BattleScene from './BattleScene'
 import { createClient } from '@/lib/supabase/client'
+import StyledButton from '../components/StyledButton'
+import LoadingSpinner from '../components/LoadingSpinner'
+
+// A new component to handle the pending state within a form
+function SubmitButton({ children, ...props }) {
+  const { pending } = useFormStatus()
+  return (
+    <StyledButton type="submit" disabled={pending} {...props}>
+      {pending ? <LoadingSpinner size={20} color="#888" /> : children}
+    </StyledButton>
+  )
+}
 
 export default function BattlePage() {
   const [state, formAction] = useActionState(performBattle, { success: false, message: '', battleData: null })
-  const { pending } = useFormStatus()
   const [battleMode, setBattleMode] = useState('random'); // 'nearby' or 'random'
-  const [fetchedNearbyUsers, setFetchedNearbyUsers] = useState(null); // New state for fetched nearby users
-  const [locationLoading, setLocationLoading] = useState(false); // New state for location loading
+  const [fetchedNearbyUsers, setFetchedNearbyUsers] = useState(null);
+  const [locationLoading, setLocationLoading] = useState(false);
 
-  // Function to fetch nearby users
   const fetchNearbyUsers = async () => {
     setLocationLoading(true);
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
-      // Handle not logged in
       setLocationLoading(false);
       return;
     }
 
-    // Fetch current user's location
     const { data: currentUserProfile, error: profileError } = await supabase
       .from('profiles')
       .select('latitude, longitude')
@@ -34,17 +42,14 @@ export default function BattlePage() {
       .single();
 
     if (profileError || !currentUserProfile || !currentUserProfile.latitude || !currentUserProfile.longitude) {
-      // Handle case where location is not available for current user
-      setFetchedNearbyUsers([]); // Set to empty array if no location
+      setFetchedNearbyUsers([]);
       setLocationLoading(false);
       return;
     }
 
-    // Round latitude and longitude to 2 decimal places
     const roundedLatitude = parseFloat(currentUserProfile.latitude.toFixed(2));
     const roundedLongitude = parseFloat(currentUserProfile.longitude.toFixed(2));
 
-    // Find other users at the same rounded location
     const { data: nearbyUsersData, error: nearbyUsersError } = await supabase
       .from('profiles')
       .select('id, email')
@@ -61,7 +66,6 @@ export default function BattlePage() {
     setLocationLoading(false);
   };
 
-  // Effect to fetch nearby users when battleMode changes to 'nearby'
   useEffect(() => {
     if (battleMode === 'nearby' && fetchedNearbyUsers === null) {
       fetchNearbyUsers();
@@ -78,39 +82,24 @@ export default function BattlePage() {
         <BattleScene battleData={state.battleData} />
       ) : (
         <>
-          <div style={{ marginBottom: '20px' }}>
-            <button
-              onClick={() => { setBattleMode('nearby'); setFetchedNearbyUsers(null); }} // Reset fetchedNearbyUsers
-              style={{
-                padding: '10px 20px',
-                marginRight: '10px',
-                backgroundColor: battleMode === 'nearby' ? '#0070f3' : '#ccc',
-                color: battleMode === 'nearby' ? 'white' : 'black',
-                border: 'none',
-                borderRadius: '5px',
-                cursor: 'pointer'
-              }}
+          <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'center', gap: '10px' }}>
+            <StyledButton
+              onClick={() => { setBattleMode('nearby'); setFetchedNearbyUsers(null); }}
+              disabled={battleMode === 'nearby'}
             >
               근처 이니스와 전투
-            </button>
-            <button
+            </StyledButton>
+            <StyledButton
               onClick={() => setBattleMode('random')}
-              style={{
-                padding: '10px 20px',
-                backgroundColor: battleMode === 'random' ? '#0070f3' : '#ccc',
-                color: battleMode === 'random' ? 'white' : 'black',
-                border: 'none',
-                borderRadius: '5px',
-                cursor: 'pointer'
-              }}
+              disabled={battleMode === 'random'}
             >
               랜덤 이니스와 전투
-            </button>
+            </StyledButton>
           </div>
 
           {battleMode === 'nearby' && (
             locationLoading ? (
-              <p>위치 정보를 불러오는 중...</p>
+              <LoadingSpinner />
             ) : (
               fetchedNearbyUsers && fetchedNearbyUsers.length > 0 ? (
                 <>
@@ -124,16 +113,15 @@ export default function BattlePage() {
                             type="radio"
                             name="opponentId"
                             value={user.id}
-                            disabled={pending}
                             style={{ marginRight: '10px' }}
                           />
                           {user.email}
                         </label>
                       ))}
                     </div>
-                    <button type="submit" aria-disabled={pending} style={{ marginTop: '20px', padding: '10px 20px' }}>
-                      {pending ? '전투 준비 중...' : '선택한 이니스와 전투 시작'}
-                    </button>
+                    <SubmitButton style={{ marginTop: '20px' }}>
+                      선택한 이니스와 전투 시작
+                    </SubmitButton>
                   </form>
                 </>
               ) : (
@@ -147,14 +135,14 @@ export default function BattlePage() {
               <p style={{ marginBottom: '20px' }}>랜덤 이니스와 전투를 시작합니다.</p>
               <form action={formAction}>
                 <input type="hidden" name="battleMode" value="random" />
-                <button type="submit" aria-disabled={pending} style={{ marginTop: '20px', padding: '10px 20px' }}>
-                  {pending ? '전투 준비 중...' : '랜덤 이니스와 전투 시작'}
-                </button>
+                <SubmitButton style={{ marginTop: '20px' }}>
+                  랜덤 이니스와 전투 시작
+                </SubmitButton>
               </form>
             </>
           )}
 
-          {state.message && (
+          {state.message && !state.success && (
             <div style={{ marginTop: '20px', border: '1px solid #eee', padding: '15px', borderRadius: '8px' }}>
               <p style={{ color: 'red' }}>{state.message}</p>
             </div>

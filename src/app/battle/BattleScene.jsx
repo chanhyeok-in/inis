@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { default as NextImage } from 'next/image'
+import StyledButton from '../components/StyledButton'
 
 // Helper for action icons
 function ActionIcon({ action, actor }) {
@@ -131,9 +132,9 @@ export default function BattleScene({ battleData }) {
       </div>
 
       {!isBattleOver ? (
-        <button onClick={handleNext} disabled={animation.active} style={{ marginTop: '10px', padding: '10px 20px', cursor: animation.active ? 'not-allowed' : 'pointer' }}>
+        <StyledButton onClick={handleNext} disabled={animation.active}>
           {animation.active ? '(액션 진행중...)' : '다음'}
-        </button>
+        </StyledButton>
       ) : (
         <div style={{ marginTop: '20px', fontWeight: 'bold', color: didWin ? 'green' : 'red', textAlign: 'center' }}>
           <h2>{didWin ? '승리!' : '패배!'}</h2>

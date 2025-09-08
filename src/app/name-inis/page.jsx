@@ -2,9 +2,11 @@
 
 import { useState, useEffect, useActionState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { nameInis } from '../daily-actions' // We will create this action next
+import { nameInis } from '../daily-actions'
 import { useRouter } from 'next/navigation'
 import { default as NextImage } from 'next/image'
+import StyledButton from '../components/StyledButton'
+import LoadingSpinner from '../components/LoadingSpinner'
 
 export default function NameInisPage() {
   const router = useRouter()
@@ -58,7 +60,11 @@ export default function NameInisPage() {
   }, [state, router])
 
   if (loading) {
-    return <div style={{ padding: '20px', textAlign: 'center' }}>로딩 중...</div>
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <LoadingSpinner />
+      </div>
+    )
   }
 
   if (!inisToName) {
@@ -84,9 +90,9 @@ export default function NameInisPage() {
           placeholder="이니스 이름"
           style={{ padding: '10px', borderRadius: '5px', border: '1px solid #ccc' }}
         />
-        <button type="submit" style={{ padding: '10px 20px', background: '#0070f3', color: 'white', borderRadius: '5px', border: 'none' }}>
+        <StyledButton type="submit">
           이름 저장
-        </button>
+        </StyledButton>
       </form>
 
       {state?.message && <p style={{ color: state.message.startsWith('성공') ? 'green' : 'red' }}>{state.message}</p>}
