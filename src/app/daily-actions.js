@@ -201,10 +201,14 @@ export async function performBattle(prevState, formData) {
   const { data: updatedProfile } = await supabase.from('profiles').select('battle_count').eq('id', user.id).single()
   if (updatedProfile.battle_count >= 1) return { success: false, message: '오늘은 이미 전투를 했습니다.' }
 
-  const { data: userCharacterLink } = await supabase.from('user_characters').select('character_id, level, attack_stat, defense_stat, health_stat, recovery_stat, affection').eq('user_id', user.id).single()
+  const { data: userCharacterLink } = await supabase.from('user_characters').select('character_id, level, attack_stat, defense_stat, health_stat, recovery_stat, affection, characters(image_url)').eq('user_id', user.id).single()
   if (!userCharacterLink) return { success: false, message: '사용자 캐릭터를 찾을 수 없습니다.' }
 
-  const userChar = userCharacterLink; // userChar now directly contains stats from user_characters
+  const userChar = {
+    ...userCharacterLink,
+    image_url: userCharacterLink.characters.image_url,
+  };
+  delete userChar.characters;
 
   // Fetch opponent's character data
   const { data: opponentCharacterLink, error: oppCharLinkError } = await supabase
@@ -217,7 +221,11 @@ export async function performBattle(prevState, formData) {
     return { success: false, message: '선택한 상대의 캐릭터를 찾을 수 없습니다.' };
   }
 
-  const opponentCharData = opponentCharacterLink; // opponentCharData now directly contains stats from user_characters
+  const opponentCharData = {
+    ...opponentCharacterLink,
+    image_url: opponentCharacterLink.characters.image_url,
+  };
+  delete opponentCharData.characters;
 
   await supabase.from('profiles').update({ battle_count: updatedProfile.battle_count + 1 }).eq('id', user.id)
 
