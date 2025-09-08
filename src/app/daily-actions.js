@@ -308,6 +308,8 @@ export async function nameInis(prevState, formData) {
   const inisId = formData.get('inisId');
   const inisName = formData.get('inisName');
 
+  const numericInisId = parseInt(inisId, 10);
+
   if (!inisName || inisName.trim().length === 0) {
     return { success: false, message: '이름을 입력해주세요.' };
   }
@@ -316,7 +318,7 @@ export async function nameInis(prevState, formData) {
     return { success: false, message: '이름은 10자 이내로 입력해주세요.' };
   }
 
-  if (!inisId) {
+  if (!numericInisId) {
     return { success: false, message: '잘못된 요청입니다.' };
   }
 
@@ -325,17 +327,18 @@ export async function nameInis(prevState, formData) {
     .from('user_characters')
     .select('id')
     .eq('user_id', user.id)
-    .eq('id', inisId)
+    .eq('id', numericInisId)
     .single();
 
   if (ownerError || !character) {
+    console.error('Ownership verification failed:', { ownerError, hasCharacter: !!character });
     return { success: false, message: '이름을 변경할 수 있는 권한이 없습니다.' };
   }
 
   const { error } = await supabase
     .from('user_characters')
     .update({ name: inisName.trim() })
-    .eq('id', inisId);
+    .eq('id', numericInisId);
 
   if (error) {
     console.error('Error naming Inis:', error);
