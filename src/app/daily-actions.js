@@ -33,6 +33,24 @@ function getBattleAction(affection) {
   return 'not_listen';
 }
 
+// Helper for Korean postpositions
+function withKoreanPostposition(name, particle) {
+  if (typeof name !== 'string' || name.length === 0) return name;
+  const lastChar = name.charCodeAt(name.length - 1);
+  // Check if the last character is within the Hangul range
+  if (lastChar < 0xAC00 || lastChar > 0xD7A3) {
+    return name + (particle === '은/는' ? '는' : '가'); // Default for non-Hangul
+  }
+  const hasJongseong = (lastChar - 0xAC00) % 28 > 0;
+  if (particle === '은/는') {
+    return name + (hasJongseong ? '은' : '는');
+  }
+  if (particle === '이/가') {
+    return name + (hasJongseong ? '이' : '가');
+  }
+  return name;
+}
+
 async function checkAndResetDailyCounts(supabase, userId, profile) {
   const now = new Date()
   const lastReset = new Date(profile.last_daily_reset)
@@ -264,7 +282,7 @@ export async function performBattle(prevState, formData) {
   let opponentHealth = opponentCalculatedStats.max_health;
 
   const battleLog = [];
-  battleLog.push({ type: 'start', message: '전투 시작!', userHealth, opponentHealth });
+  battleLog.push({ type: 'start', message: '전투가 시작되었습니다.', userHealth, opponentHealth });
 
   let turn = 1;
   const maxTurns = 20;
@@ -274,17 +292,19 @@ export async function performBattle(prevState, formData) {
     const userAction = getBattleAction(userChar.affection);
     let userDamage = 0;
     let userMessage = '';
+    const userName = userChar.name || '이니스';
+    const userSubject = withKoreanPostposition(userName, '은/는');
 
     if (userAction === 'attack') {
       userDamage = Math.max(0, userCalculatedStats.attack_power - opponentCalculatedStats.defense_power);
       opponentHealth -= userDamage;
-      userMessage = `상대에게 ${userDamage}의 데미지를 입혔다!`;
+      userMessage = `${userSubject} 상대에게 ${userDamage}의 데미지를 입혔다!`;
     } else if (userAction === 'understand') {
-      userMessage = '유저의 말을 이해하지 못했다!';
+      userMessage = `${userSubject} 유저의 말을 이해하지 못했다!`;
     } else if (userAction === 'space_out') {
-      userMessage = '멍때리고 있다!';
+      userMessage = `${userSubject} 멍때리고 있다!`;
     } else { // not_listen
-      userMessage = '유저의 말을 듣지 않는다!';
+      userMessage = `${userSubject} 유저의 말을 듣지 않는다!`;
     }
 
     battleLog.push({
@@ -304,17 +324,19 @@ export async function performBattle(prevState, formData) {
     const opponentAction = getBattleAction(opponentCharData.affection);
     let opponentDamage = 0;
     let opponentMessage = '';
+    const opponentName = opponentCharData.name || '이니스';
+    const opponentSubject = withKoreanPostposition(opponentName, '은/는');
 
     if (opponentAction === 'attack') {
       opponentDamage = Math.max(0, opponentCalculatedStats.attack_power - userCalculatedStats.defense_power);
       userHealth -= opponentDamage;
-      opponentMessage = `내게 ${opponentDamage}의 데미지를 입혔다!`;
+      opponentMessage = `${opponentSubject} 내게 ${opponentDamage}의 데미지를 입혔다!`;
     } else if (opponentAction === 'understand') {
-      opponentMessage = '유저의 말을 이해하지 못했다!';
+      opponentMessage = `${opponentSubject} 유저의 말을 이해하지 못했다!`;
     } else if (opponentAction === 'space_out') {
-      opponentMessage = '멍때리고 있다!';
+      opponentMessage = `${opponentSubject} 멍때리고 있다!`;
     } else { // not_listen
-      opponentMessage = '유저의 말을 듣지 않는다!';
+      opponentMessage = `${opponentSubject} 유저의 말을 듣지 않는다!`;
     }
 
     battleLog.push({
