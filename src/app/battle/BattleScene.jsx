@@ -138,35 +138,3 @@ export default function BattleScene({ battleData }) {
     </div>
   )
 }
-
-          <CharacterDisplay character={userChar} health={health.user} maxHealth={battleLog[0].userHealth} isUser={true} />
-          <div style={getIconContainerStyle('user')}>
-            {animation.active && animation.actor === 'user' && <ActionIcon action={animation.type} />}
-          </div>
-        </div>
-
-        <div style={{ fontSize: '24px', fontWeight: 'bold', color: 'white' }}>VS</div>
-
-        <div style={getInisContainerStyle('opponent')}>
-          <CharacterDisplay character={opponentChar} health={health.opponent} maxHealth={battleLog[0].opponentHealth} isUser={false} />
-          <div style={getIconContainerStyle('opponent')}>
-            {animation.active && animation.actor === 'opponent' && <ActionIcon action={animation.type} />}
-          </div>
-        </div>
-      </div>
-
-      <div style={{ marginTop: '20px', border: '1px solid #ccc', padding: '10px', minHeight: '100px', background: '#fff', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-        <p style={{ color: 'black', whiteSpace: 'pre-wrap', textAlign: 'center', fontWeight: 'bold' }}>{currentLogEntry.message}</p>
-      </div>
-
-      {!isBattleOver ? (
-        null
-      ) : (
-        <div style={{ marginTop: '20px', fontWeight: 'bold', color: didWin ? 'green' : 'red', textAlign: 'center' }}>
-          <h2>{didWin ? '승리!' : '패배!'}</h2>
-          {affectionIncreased && <p>유대감이 1 증가했습니다!</p>}
-        </div>
-      )}
-    </div>
-  )
-}
