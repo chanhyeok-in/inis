@@ -296,3 +296,51 @@ export async function performBattle(prevState, formData) {
     },
   }
 }
+
+export async function nameInis(prevState, formData) {
+  const supabase = await getSupabaseServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { success: false, message: '로그인되지 않았습니다.' };
+  }
+
+  const inisId = formData.get('inisId');
+  const inisName = formData.get('inisName');
+
+  if (!inisName || inisName.trim().length === 0) {
+    return { success: false, message: '이름을 입력해주세요.' };
+  }
+
+  if (inisName.length > 10) {
+    return { success: false, message: '이름은 10자 이내로 입력해주세요.' };
+  }
+
+  if (!inisId) {
+    return { success: false, message: '잘못된 요청입니다.' };
+  }
+
+  // Verify the user owns this Inis
+  const { data: character, error: ownerError } = await supabase
+    .from('user_characters')
+    .select('id')
+    .eq('user_id', user.id)
+    .eq('id', inisId)
+    .single();
+
+  if (ownerError || !character) {
+    return { success: false, message: '이름을 변경할 수 있는 권한이 없습니다.' };
+  }
+
+  const { error } = await supabase
+    .from('user_characters')
+    .update({ name: inisName.trim() })
+    .eq('id', inisId);
+
+  if (error) {
+    console.error('Error naming Inis:', error);
+    return { success: false, message: '이름을 저장하는 데 실패했습니다.' };
+  }
+
+  return { success: true, message: '성공적으로 이름을 저장했습니다!' };
+}
