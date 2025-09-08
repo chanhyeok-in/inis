@@ -248,7 +248,7 @@ export async function performBattle(prevState, formData) {
     const userAction = getBattleAction(userChar.affection)
     turnMessage += `내 이니스 행동: ${userAction}`
     if (userAction === 'attack') {
-      const damage = Math.max(0, userCalculatedStats.attack_power - opponentCalculatedStats.defense_defense)
+      const damage = Math.max(0, userCalculatedStats.attack_power - opponentCalculatedStats.defense_power)
       opponentHealth -= damage
       turnMessage += `
 상대에게 ${damage}의 데미지!`
@@ -261,7 +261,7 @@ export async function performBattle(prevState, formData) {
     const opponentAction = getBattleAction(opponentCharData.affection)
     turnMessage = `상대 이니스 행동: ${opponentAction}`
     if (opponentAction === 'attack') {
-      const damage = Math.max(0, opponentCalculatedStats.attack_power - userCalculatedStats.defense_defense)
+      const damage = Math.max(0, opponentCalculatedStats.attack_power - userCalculatedStats.defense_power)
       userHealth -= damage
       turnMessage += `
 내게 ${damage}의 데미지!`

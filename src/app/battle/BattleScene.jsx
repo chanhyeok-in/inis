@@ -33,7 +33,7 @@ export default function BattleScene({ battleData }) {
       </div>
 
       <div style={{ marginTop: '20px', border: '1px solid #ccc', padding: '10px', minHeight: '100px', background: '#fff' }}>
-        <p style={{ fontStyle: 'italic' }}>{currentLogEntry.message}</p>
+        <p style={{ color: 'black', whiteSpace: 'pre-wrap' }}>{currentLogEntry.message}</p>
       </div>
 
       {!isBattleOver ? (
