@@ -52,7 +52,7 @@ async function checkAndResetDailyCounts(supabase, userId, profile) {
 }
 
 export async function performWalk() {
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { success: false, message: '로그인되지 않았습니다.' }
 
@@ -93,7 +93,7 @@ export async function performWalk() {
 }
 
 export async function performConversation() {
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { success: false, message: '로그인되지 않습니다.' }
 
@@ -143,7 +143,7 @@ export async function performConversation() {
 }
 
 export async function performBattle(prevState, formData) {
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { success: false, message: '로그인되지 않습니다.' }
 
