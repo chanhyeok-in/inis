@@ -406,19 +406,26 @@ export async function performBattle(prevState, formData) {
   let updatedUserChar = { ...userChar };
   let updatePayload = {};
 
+  // Ensure initial stats are numbers
+  const currentLevel = updatedUserChar.level ?? 0;
+  const currentAffection = updatedUserChar.affection ?? 0;
+  const currentAttackStat = updatedUserChar.attack_stat ?? 0;
+  const currentDefenseStat = updatedUserChar.defense_stat ?? 0;
+  const currentHealthStat = updatedUserChar.health_stat ?? 0;
+  const currentRecoveryStat = updatedUserChar.recovery_stat ?? 0;
+
   if (levelChange > 0) {
-    updatedUserChar.level += levelChange;
-    updatePayload.level = updatedUserChar.level;
+    updatePayload.level = currentLevel + levelChange;
   }
 
   if (affectionChange > 0) {
-    updatedUserChar.affection += affectionChange;
-    updatePayload.affection = updatedUserChar.affection;
+    updatePayload.affection = currentAffection + affectionChange;
   }
 
   if (statIncrease) {
-    updatedUserChar[statIncrease] += 1;
-    updatePayload[statIncrease] = updatedUserChar[statIncrease];
+    // Get the current value of the stat, default to 0 if null/undefined
+    const currentStatValue = updatedUserChar[statIncrease] ?? 0;
+    updatePayload[statIncrease] = currentStatValue + 1;
   }
 
   if (Object.keys(updatePayload).length > 0) {
