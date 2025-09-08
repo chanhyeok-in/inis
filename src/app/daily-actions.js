@@ -201,12 +201,13 @@ export async function performBattle(prevState, formData) {
   const { data: updatedProfile } = await supabase.from('profiles').select('battle_count').eq('id', user.id).single()
   if (updatedProfile.battle_count >= 1) return { success: false, message: '오늘은 이미 전투를 했습니다.' }
 
-  const { data: userCharacterLink } = await supabase.from('user_characters').select('character_id, level, attack_stat, defense_stat, health_stat, recovery_stat, affection, characters(image_url)').eq('user_id', user.id).single()
+  const { data: userCharacterLink } = await supabase.from('user_characters').select('name, level, attack_stat, defense_stat, health_stat, recovery_stat, affection, characters(image_url)').eq('user_id', user.id).single()
   if (!userCharacterLink) return { success: false, message: '사용자 캐릭터를 찾을 수 없습니다.' }
 
   const userChar = {
     ...userCharacterLink,
     image_url: userCharacterLink.characters.image_url,
+    email: user.email, // Add user's email
   };
   delete userChar.characters;
 
@@ -226,6 +227,18 @@ export async function performBattle(prevState, formData) {
     image_url: opponentCharacterLink.characters.image_url,
   };
   delete opponentCharData.characters;
+
+  // Fetch opponent's profile data for email
+  const { data: opponentProfile, error: opponentProfileError } = await supabase
+    .from('profiles')
+    .select('email')
+    .eq('id', opponentId)
+    .single();
+
+  if (opponentProfileError || !opponentProfile) {
+    return { success: false, message: '상대방 프로필 정보를 가져올 수 없습니다.' };
+  }
+  opponentCharData.email = opponentProfile.email;
 
   console.log('User Char for Battle:', JSON.stringify(userChar, null, 2));
   console.log('Opponent Char for Battle:', JSON.stringify(opponentCharData, null, 2));

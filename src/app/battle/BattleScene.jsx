@@ -5,18 +5,7 @@ import { default as NextImage } from 'next/image'
 import StyledButton from '../components/StyledButton'
 
 // Helper for action icons
-function ActionIcon({ action, actor }) {
-  const style = {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: '50px',
-    height: '50px',
-    opacity: 0,
-    transition: 'opacity 0.3s ease-in-out',
-  }
-
+function ActionIcon({ action }) {
   let iconSrc = null
   if (action === 'understand') iconSrc = '/question.svg'
   if (action === 'space_out') iconSrc = '/ellipsis.svg'
@@ -24,7 +13,21 @@ function ActionIcon({ action, actor }) {
 
   if (!iconSrc) return null
 
-  return <NextImage src={iconSrc} alt={action} width={50} height={50} style={style} />
+  return <NextImage src={iconSrc} alt={action} width={50} height={50} />
+}
+
+// Helper for character display
+function CharacterDisplay({ character, health, maxHealth, isUser }) {
+  const borderColor = isUser ? 'blue' : 'red';
+  return (
+    <div style={{ textAlign: 'center' }}>
+      <h2 style={{ fontSize: '1.1em', fontWeight: 'bold', marginBottom: '4px' }}>{character.name || '이름없음'}</h2>
+      <p style={{ fontSize: '0.9em', color: '#555', margin: '0' }}>Lv. {character.level}</p>
+      <p style={{ fontSize: '0.8em', color: '#777', margin: '0 0 8px 0' }}>({character.email})</p>
+      <NextImage src={character.image_url} alt={character.name} width={150} height={150} style={{ border: `3px solid ${borderColor}`, borderRadius: '8px' }} />
+      <p style={{ color: 'black', fontWeight: 'bold', marginTop: '8px' }}>체력: {health} / {maxHealth}</p>
+    </div>
+  )
 }
 
 export default function BattleScene({ battleData }) {
@@ -47,7 +50,6 @@ export default function BattleScene({ battleData }) {
         setAnimation({ active: false, type: null, actor: null })
       }, animationTime)
     } else {
-      // For 'start', 'recovery', 'end' types
       setHealth({ user: entry.userHealth, opponent: entry.opponentHealth })
     }
   }, [logIndex, battleLog])
@@ -58,11 +60,12 @@ export default function BattleScene({ battleData }) {
     }
   }
 
-  const getInisStyle = (character) => {
+  const getInisContainerStyle = (character) => {
     const isActor = animation.active && animation.actor === character
     const style = {
       transition: 'transform 0.5s ease-in-out',
       transform: 'translateX(0)',
+      position: 'relative',
     }
     if (isActor && animation.type === 'attack') {
       style.transform = character === 'user' ? 'translateX(180px)' : 'translateX(-180px)'
@@ -70,17 +73,16 @@ export default function BattleScene({ battleData }) {
     return style
   }
 
-  const getIconStyle = (character) => {
+  const getIconContainerStyle = (character) => {
     const isActor = animation.active && animation.actor === character
     const style = {
       position: 'absolute',
-      top: '0',
+      top: '50%',
       left: '50%',
-      transform: 'translateX(-50%)',
-      width: '50px',
-      height: '50px',
+      transform: 'translate(-50%, -50%)',
       opacity: 0,
       transition: 'opacity 0.3s ease-in-out',
+      zIndex: 10,
     }
     if (isActor && ['understand', 'space_out', 'not_listen'].includes(animation.type)) {
       style.opacity = 1
@@ -92,47 +94,37 @@ export default function BattleScene({ battleData }) {
   }
 
   return (
-    <div style={{ marginTop: '20px' }}>
+    <div style={{ marginTop: '20px', textAlign: 'center' }}>
       <style>{`
         @keyframes shake {
-          0%, 100% { transform: translate(-55%, 5%) rotate(-15deg); }
-          50% { transform: translate(-45%, -5%) rotate(15deg); }
+          0%, 100% { transform: translate(-50%, -50%) rotate(-15deg); }
+          50% { transform: translate(-50%, -50%) rotate(15deg); }
         }
       `}</style>
       <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center', padding: '20px', border: '1px solid #333', borderRadius: '10px', background: '#f9f9f9', overflow: 'hidden' }}>
-        {/* User Inis */}
-        <div style={{ position: 'relative', textAlign: 'center' }}>
-          <h2>내 이니스</h2>
-          <div style={getInisStyle('user')}>
-            <NextImage src={userChar.image_url} alt="My Inis" width={150} height={150} style={{ border: '2px solid blue', borderRadius: '8px' }} />
-          </div>
-          <div style={getIconStyle('user')}>
+        <div style={getInisContainerStyle('user')}>
+          <CharacterDisplay character={userChar} health={health.user} maxHealth={battleLog[0].userHealth} isUser={true} />
+          <div style={getIconContainerStyle('user')}>
             {animation.active && animation.actor === 'user' && <ActionIcon action={animation.type} />}
           </div>
-          <p>체력: {health.user} / {battleLog[0].userHealth}</p>
         </div>
 
         <div style={{ fontSize: '24px', fontWeight: 'bold' }}>VS</div>
 
-        {/* Opponent Inis */}
-        <div style={{ position: 'relative', textAlign: 'center' }}>
-          <h2>{opponentChar.name}</h2>
-          <div style={getInisStyle('opponent')}>
-            <NextImage src={opponentChar.image_url} alt="Opponent Inis" width={150} height={150} style={{ border: '2px solid red', borderRadius: '8px' }} />
-          </div>
-           <div style={getIconStyle('opponent')}>
+        <div style={getInisContainerStyle('opponent')}>
+          <CharacterDisplay character={opponentChar} health={health.opponent} maxHealth={battleLog[0].opponentHealth} isUser={false} />
+          <div style={getIconContainerStyle('opponent')}>
             {animation.active && animation.actor === 'opponent' && <ActionIcon action={animation.type} />}
           </div>
-          <p>체력: {health.opponent} / {battleLog[0].opponentHealth}</p>
         </div>
       </div>
 
-      <div style={{ marginTop: '20px', border: '1px solid #ccc', padding: '10px', minHeight: '100px', background: '#fff' }}>
+      <div style={{ marginTop: '20px', border: '1px solid #ccc', padding: '10px', minHeight: '100px', background: '#fff', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
         <p style={{ color: 'black', whiteSpace: 'pre-wrap', textAlign: 'center', fontWeight: 'bold' }}>{currentLogEntry.message}</p>
       </div>
 
       {!isBattleOver ? (
-        <StyledButton onClick={handleNext} disabled={animation.active}>
+        <StyledButton onClick={handleNext} disabled={animation.active} style={{ marginTop: '20px' }}>
           {animation.active ? '(액션 진행중...)' : '다음'}
         </StyledButton>
       ) : (
