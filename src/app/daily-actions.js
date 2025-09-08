@@ -236,9 +236,11 @@ export async function performBattle(prevState, formData) {
     .single();
 
   if (opponentProfileError || !opponentProfile) {
-    return { success: false, message: '상대방 프로필 정보를 가져올 수 없습니다.' };
+    console.warn(`상대방 ID에 대한 프로필을 가져올 수 없습니다: ${opponentId}. 이메일을 기본값으로 설정합니다.`);
+    opponentCharData.email = '알 수 없음';
+  } else {
+    opponentCharData.email = opponentProfile.email;
   }
-  opponentCharData.email = opponentProfile.email;
 
   console.log('User Char for Battle:', JSON.stringify(userChar, null, 2));
   console.log('Opponent Char for Battle:', JSON.stringify(opponentCharData, null, 2));
