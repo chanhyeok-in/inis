@@ -2,6 +2,8 @@ import { getSupabaseServerClient } from '@/lib/supabase/server-utils'
 import { redirect } from 'next/navigation'
 import AnimatedInis from './AnimatedInis'
 import { calculateInisStats } from '@/lib/inis/stats';
+import Link from 'next/link'; // Import Link
+import StyledButton from './components/StyledButton'; // Import StyledButton
 
 export default async function Home() {
   const supabase = await getSupabaseServerClient()
@@ -13,6 +15,25 @@ export default async function Home() {
   if (!user) {
     redirect('/login')
   }
+
+  // Fetch profile counts
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('walk_count, conversation_count, battle_count')
+    .eq('id', user.id)
+    .single();
+
+  if (profileError) {
+    console.error('Error fetching profile counts:', profileError);
+  }
+
+  const walkCount = profile?.walk_count ?? 0;
+  const conversationCount = profile?.conversation_count ?? 0;
+  const battleCount = profile?.battle_count ?? 0;
+
+  const maxWalk = 1;
+  const maxConversation = 3;
+  const maxBattle = 1;
 
   const { data: userCharacters, error: fetchUserCharactersError } = await supabase
     .from('user_characters')
@@ -51,8 +72,7 @@ export default async function Home() {
         </form>
       </div>
 
-      <h1>My Inis</h1>
-      <p>내가 보유한 Inis</p>
+      <h1>내 Inis</h1>
       
       <div style={{ marginTop: '30px', minHeight: '250px', display: 'flex', justifyContent: 'center', gap: '10px', flexWrap: 'wrap' }}>
         {userCharacters && userCharacters.length > 0 ? (
@@ -94,15 +114,21 @@ export default async function Home() {
       </div>
 
       <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'center', gap: '10px' }}>
-        <a href="/walk" style={{ padding: '10px 20px', background: '#4CAF50', color: 'white', borderRadius: '5px', textDecoration: 'none' }}>
-          산책하기
-        </a>
-        <a href="/conversation" style={{ padding: '10px 20px', background: '#FFC107', color: 'white', borderRadius: '5px', textDecoration: 'none' }}>
-          대화하기
-        </a>
-        <a href="/battle" style={{ padding: '10px 20px', background: '#F44336', color: 'white', borderRadius: '5px', textDecoration: 'none' }}>
-          전투하기
-        </a>
+        <Link href="/walk" passHref legacyBehavior>
+          <StyledButton as="a">
+            산책하기 ({walkCount}/{maxWalk})
+          </StyledButton>
+        </Link>
+        <Link href="/conversation" passHref legacyBehavior>
+          <StyledButton as="a">
+            대화하기 ({conversationCount}/{maxConversation})
+          </StyledButton>
+        </Link>
+        <Link href="/battle" passHref legacyBehavior>
+          <StyledButton as="a">
+            전투하기 ({battleCount}/{maxBattle})
+          </StyledButton>
+        </Link>
       </div>
     </div>
   )
