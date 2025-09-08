@@ -22,10 +22,10 @@ function CharacterDisplay({ character, health, maxHealth, isUser }) {
   return (
     <div style={{ textAlign: 'center' }}>
       <h2 style={{ fontSize: '1.1em', fontWeight: 'bold', marginBottom: '4px' }}>{character.name || '이름없음'}</h2>
-      <p style={{ fontSize: '0.9em', color: '#555', margin: '0' }}>Lv. {character.level}</p>
-      <p style={{ fontSize: '0.8em', color: '#777', margin: '0 0 8px 0' }}>({character.username})</p>
+      <p style={{ fontSize: '0.9em', color: '#ededed', margin: '0' }}>Lv. {character.level}</p>
+      <p style={{ fontSize: '0.8em', color: '#bbb', margin: '0 0 8px 0' }}>({character.username})</p>
       <NextImage src={character.image_url} alt={character.name} width={150} height={150} style={{ border: `3px solid ${borderColor}`, borderRadius: '8px' }} />
-      <p style={{ color: 'black', fontWeight: 'bold', marginTop: '8px' }}>체력: {health} / {maxHealth}</p>
+      <p style={{ color: '#ededed', fontWeight: 'bold', marginTop: '8px' }}>체력: {health} / {maxHealth}</p>
     </div>
   )
 }
@@ -101,7 +101,7 @@ export default function BattleScene({ battleData }) {
           50% { transform: translate(-50%, -50%) rotate(15deg); }
         }
       `}</style>
-      <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center', padding: '20px', border: '1px solid #333', borderRadius: '10px', background: '#f9f9f9', overflow: 'hidden' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center', padding: '20px', border: '1px solid #333', borderRadius: '10px', background: 'black', overflow: 'hidden' }}>
         <div style={getInisContainerStyle('user')}>
           <CharacterDisplay character={userChar} health={health.user} maxHealth={battleLog[0].userHealth} isUser={true} />
           <div style={getIconContainerStyle('user')}>
@@ -109,7 +109,7 @@ export default function BattleScene({ battleData }) {
           </div>
         </div>
 
-        <div style={{ fontSize: '24px', fontWeight: 'bold' }}>VS</div>
+        <div style={{ fontSize: '24px', fontWeight: 'bold', color: 'white' }}>VS</div>
 
         <div style={getInisContainerStyle('opponent')}>
           <CharacterDisplay character={opponentChar} health={health.opponent} maxHealth={battleLog[0].opponentHealth} isUser={false} />
