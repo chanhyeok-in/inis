@@ -12,6 +12,7 @@ export default function WalkPage() {
   const { pending } = useFormStatus()
   const formRef = useRef(null)
   const [imageUrl, setImageUrl] = useState(null)
+  const [characterId, setCharacterId] = useState(null) // New state for characterId
 
   useEffect(() => {
     const fetchCharacterImage = async () => {
@@ -22,6 +23,8 @@ export default function WalkPage() {
           .from('user_characters')
           .select(`
             characters(image_url),
+            id,
+            character_id,
             level,
             attack_stat,
             defense_stat,
@@ -30,10 +33,11 @@ export default function WalkPage() {
             affection
           `)
           .eq('user_id', user.id)
-          .single()
+          .single() // Assuming one main character per user for now, or need to select which one
         
         if (userCharacter && userCharacter.characters) {
           setImageUrl(userCharacter.characters.image_url)
+          setCharacterId(userCharacter.character_id) // Set characterId
         }
       }
     }
@@ -66,6 +70,7 @@ export default function WalkPage() {
       </div>
 
       <form action={formAction} ref={formRef}>
+        {characterId && <input type="hidden" name="characterId" value={characterId} />} {/* Hidden input */}
         <button type="submit" aria-disabled={pending}>
           {pending ? '산책 중...' : '산책 시작'}
         </button>

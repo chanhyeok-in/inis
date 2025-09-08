@@ -16,6 +16,7 @@ export default async function Home() {
     .from('user_characters')
     .select(`
       id,
+      name,
       level,
       attack_stat,
       defense_stat,
@@ -27,6 +28,11 @@ export default async function Home() {
       )
     `)
     .eq('user_id', user.id)
+
+  const needsNaming = userCharacters?.some(uc => !uc.name || uc.name.trim() === '');
+  if (needsNaming) {
+    redirect('/name-inis');
+  }
 
   return (
     <div style={{ padding: '20px', textAlign: 'center' }}>
@@ -58,6 +64,7 @@ export default async function Home() {
                     });
                     return (
                       <div style={{ fontSize: '12px', marginTop: '5px' }}>
+                        <p>이름: {uc.name || '이름 없음'}</p>
                         <p>레벨: {uc.level}</p>
                         <p>공격력: {calculatedStats.attack_power}</p>
                         <p>방어력: {calculatedStats.defense_power}</p>

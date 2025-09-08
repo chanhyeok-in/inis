@@ -114,7 +114,7 @@ export async function performConversation() {
     if (userCharacter) {
       const newAffection = userCharacter.affection + 1; // Use affection from user_characters
       console.log(`Attempting to update user_character ${userCharacter.character_id} affection from ${userCharacter.affection} to ${newAffection}`);
-      const { error: affectionError } = await supabase.from('user_characters').update({ affection: newAffection }).eq('character_id', userCharacter.character_id) // Update user_characters
+      const { error: affectionError } = await supabase.from('user_characters').update({ affection: newAffection }).eq('user_id', user.id).eq('character_id', userCharacter.character_id) // Update user_characters
       if (affectionError) {
         console.error('Error updating affection:', affectionError);
       } else {
