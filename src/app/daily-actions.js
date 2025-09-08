@@ -296,7 +296,7 @@ export async function performBattle(prevState, formData) {
     const userSubject = withKoreanPostposition(userName, '은/는');
 
     if (userAction === 'attack') {
-      let baseDamage = 3 * (1 + userChar.attack_stat);
+      let baseDamage = 6 * (1 + userChar.attack_stat);
       const isCritical = Math.random() < 0.25;
       userDamage = isCritical ? baseDamage * 2 : baseDamage;
       opponentHealth -= userDamage;
@@ -331,7 +331,7 @@ export async function performBattle(prevState, formData) {
     const opponentSubject = withKoreanPostposition(opponentName, '은/는');
 
     if (opponentAction === 'attack') {
-      let baseDamage = 3 * (1 + opponentCharData.attack_stat);
+      let baseDamage = 6 * (1 + opponentCharData.attack_stat);
       const isCritical = Math.random() < 0.25;
       opponentDamage = isCritical ? baseDamage * 2 : baseDamage;
       userHealth -= opponentDamage;
@@ -375,27 +375,88 @@ export async function performBattle(prevState, formData) {
     turn++;
   }
 
-  const didWin = userHealth > 0
-  let affectionIncreased = false
+  const didWin = userHealth > 0 && opponentHealth <= 0;
+  const didLose = opponentHealth > 0 && userHealth <= 0;
+  const didDraw = userHealth > 0 && opponentHealth > 0 && turn > maxTurns;
+
+  let finalMessage = '';
+  let affectionChange = 0;
+  let levelChange = 0;
+  let statIncrease = null; // To store which stat increased
+
   if (didWin) {
-    const { data: character } = await supabase.from('characters').select('affection').eq('id', userCharacterLink.character_id).single()
-    if (character) {
-      const { error: affectionError } = await supabase.from('characters').update({ affection: character.affection + 1 }).eq('id', userCharacterLink.character_id)
-      if (!affectionError) affectionIncreased = true
+    finalMessage = '전투 승리!';
+    affectionChange = 1;
+    levelChange = 1;
+  } else if (didLose) {
+    finalMessage = '전투 패배!';
+    affectionChange = 1;
+  } else if (didDraw) {
+    finalMessage = '무승부!';
+    levelChange = 1;
+  }
+
+  // Handle stat increase for Win/Draw
+  if (didWin || didDraw) {
+    const statsToIncrease = ['attack_stat', 'defense_stat', 'health_stat', 'recovery_stat'];
+    statIncrease = statsToIncrease[Math.floor(Math.random() * statsToIncrease.length)];
+  }
+
+  // Update user_characters table
+  let updatedUserChar = { ...userChar };
+  let updatePayload = {};
+
+  if (levelChange > 0) {
+    updatedUserChar.level += levelChange;
+    updatePayload.level = updatedUserChar.level;
+  }
+
+  if (affectionChange > 0) {
+    updatedUserChar.affection += affectionChange;
+    updatePayload.affection = updatedUserChar.affection;
+  }
+
+  if (statIncrease) {
+    updatedUserChar[statIncrease] += 1;
+    updatePayload[statIncrease] = updatedUserChar[statIncrease];
+  }
+
+  if (Object.keys(updatePayload).length > 0) {
+    const { error: updateCharError } = await supabase
+      .from('user_characters')
+      .update(updatePayload)
+      .eq('id', updatedUserChar.id);
+
+    if (updateCharError) {
+      console.error('Error updating user character stats:', updateCharError);
+      finalMessage += ' (스탯 업데이트 실패)';
     }
   }
 
-  const finalMessage = didWin ? (affectionIncreased ? '전투 승리! 유대감이 1 증가했습니다!' : '전투 승리!') : '전투 패배!';
+  // Add specific messages for stat/affection changes
+  if (didWin) {
+    finalMessage += affectionChange > 0 ? ' 유대감이 1 증가했습니다!' : '';
+    finalMessage += levelChange > 0 ? ' 레벨이 1 올랐습니다!' : '';
+    finalMessage += statIncrease ? ` ${statIncrease}이(가) 1 증가했습니다!` : '';
+  } else if (didLose) {
+    finalMessage += affectionChange > 0 ? ' 유대감이 1 증가했습니다!' : '';
+  } else if (didDraw) {
+    finalMessage += levelChange > 0 ? ' 레벨이 1 올랐습니다!' : '';
+    finalMessage += statIncrease ? ` ${statIncrease}이(가) 1 증가했습니다!` : '';
+  }
+
   battleLog.push({ type: 'end', message: finalMessage, userHealth, opponentHealth });
 
   return {
     success: true,
     battleData: {
-      userChar: { ...userChar, current_health: userCalculatedStats.max_health },
+      userChar: { ...updatedUserChar, current_health: userCalculatedStats.max_health },
       opponentChar: { ...opponentCharData, current_health: opponentCalculatedStats.max_health },
       battleLog,
       didWin,
-      affectionIncreased,
+      didLose,
+      didDraw,
+      affectionIncreased: affectionChange > 0,
     },
   }
 }
