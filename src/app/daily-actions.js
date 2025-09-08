@@ -87,19 +87,31 @@ export async function performWalk() {
 
   let affectionIncreased = false
   if (Math.random() < 0.10) {
-    const { data: userCharacter, error: userCharError } = await supabase.from('user_characters').select('character_id, affection, name').eq('user_id', user.id).single() // Fetch affection and name from user_characters
+    const { data: userCharacter, error: userCharError } = await supabase.from('user_characters').select('id, user_id, character_id, created_at, level, attack_stat, defense_stat, health_stat, recovery_stat, affection, name').eq('user_id', user.id).single() // Fetch all character data
     if (userCharError) {
       console.error('Error fetching user character for walk:', userCharError);
     }
     if (userCharacter) {
-      const newAffection = userCharacter.affection + 1; // Use affection from user_characters
-      console.log(`Attempting to update user_character ${userCharacter.character_id} affection from ${userCharacter.affection} to ${newAffection}`);
-      const { error: affectionError } = await supabase.from('user_characters').update({ affection: newAffection }).eq('character_id', userCharacter.character_id) // Update user_characters
+      const updatedCharacter = { ...userCharacter, affection: userCharacter.affection + 1 };
+      const payload = {
+        user_id: updatedCharacter.user_id,
+        character_id: updatedCharacter.character_id,
+        created_at: updatedCharacter.created_at,
+        level: updatedCharacter.level,
+        attack_stat: updatedCharacter.attack_stat,
+        defense_stat: updatedCharacter.defense_stat,
+        health_stat: updatedCharacter.health_stat,
+        recovery_stat: updatedCharacter.recovery_stat,
+        affection: updatedCharacter.affection,
+        name: updatedCharacter.name,
+      };
+      console.log(`Attempting to update user_character ${userCharacter.id} affection from ${userCharacter.affection} to ${updatedCharacter.affection}`);
+      const { error: affectionError } = await supabase.from('user_characters').update(payload).eq('id', userCharacter.id) // Update user_characters
       if (affectionError) {
         console.error('Error updating affection:', affectionError);
       } else {
         affectionIncreased = true
-        console.log(`Affection updated successfully for user_character ${userCharacter.character_id}`);
+        console.log(`Affection updated successfully for user_character ${userCharacter.id}`);
       }
     } else {
       console.error('User character link not found for affection update.');
@@ -133,19 +145,31 @@ export async function performConversation() {
 
   let affectionIncreased = false
   if (Math.random() < 0.10) {
-    const { data: userCharacter, error: userCharError } = await supabase.from('user_characters').select('character_id, affection, name').eq('user_id', user.id).single() // Fetch affection and name from user_characters
+    const { data: userCharacter, error: userCharError } = await supabase.from('user_characters').select('id, user_id, character_id, created_at, level, attack_stat, defense_stat, health_stat, recovery_stat, affection, name').eq('user_id', user.id).single() // Fetch all character data
     if (userCharError) {
       console.error('Error fetching user character for conversation:', userCharError);
     }
     if (userCharacter) {
-      const newAffection = userCharacter.affection + 1; // Use affection from user_characters
-      console.log(`Attempting to update user_character ${userCharacter.character_id} affection from ${userCharacter.affection} to ${newAffection}`);
-      const { error: affectionError } = await supabase.from('user_characters').update({ affection: newAffection }).eq('user_id', user.id).eq('character_id', userCharacter.character_id) // Update user_characters
+      const updatedCharacter = { ...userCharacter, affection: userCharacter.affection + 1 };
+      const payload = {
+        user_id: updatedCharacter.user_id,
+        character_id: updatedCharacter.character_id,
+        created_at: updatedCharacter.created_at,
+        level: updatedCharacter.level,
+        attack_stat: updatedCharacter.attack_stat,
+        defense_stat: updatedCharacter.defense_stat,
+        health_stat: updatedCharacter.health_stat,
+        recovery_stat: updatedCharacter.recovery_stat,
+        affection: updatedCharacter.affection,
+        name: updatedCharacter.name,
+      };
+      console.log(`Attempting to update user_character ${userCharacter.id} affection from ${userCharacter.affection} to ${updatedCharacter.affection}`);
+      const { error: affectionError } = await supabase.from('user_characters').update(payload).eq('id', userCharacter.id) // Update user_characters
       if (affectionError) {
         console.error('Error updating affection:', affectionError);
       } else {
         affectionIncreased = true
-        console.log(`Affection updated successfully for user_character ${userCharacter.character_id}`);
+        console.log(`Affection updated successfully for user_character ${userCharacter.id}`);
       }
     } else {
       console.error('User character link not found for affection update.');
@@ -239,7 +263,7 @@ export async function performBattle(prevState, formData) {
     return { success: false, message: '현재 사용자 프로필 정보를 가져올 수 없습니다.' };
   }
 
-  const { data: userCharacterLink } = await supabase.from('user_characters').select('name, level, attack_stat, defense_stat, health_stat, recovery_stat, affection, characters(image_url)').eq('user_id', user.id).single()
+  const { data: userCharacterLink } = await supabase.from('user_characters').select('id, user_id, character_id, created_at, name, level, attack_stat, defense_stat, health_stat, recovery_stat, affection, characters(image_url)').eq('user_id', user.id).single()
   if (!userCharacterLink) return { success: false, message: '사용자 캐릭터를 찾을 수 없습니다.' }
 
   const userChar = {
@@ -436,24 +460,23 @@ export async function performBattle(prevState, formData) {
   }
 
   if (levelChange > 0 || affectionChange > 0 || statIncrease) { // Check if any changes were made
-    // Create a payload with only the columns that belong to user_characters
     const payloadToUpdate = {
-      level: updatedUserChar.level ?? 0, // Ensure it's a number
-      affection: updatedUserChar.affection ?? 0, // Ensure it's a number
-      name: updatedUserChar.name, // Name can be string or null
-      attack_stat: updatedUserChar.attack_stat ?? 0, // Ensure it's a number
-      defense_stat: updatedUserChar.defense_stat ?? 0, // Ensure it's a number
-      health_stat: updatedUserChar.health_stat ?? 0, // Ensure it's a number
-      recovery_stat: updatedUserChar.recovery_stat ?? 0, // Ensure it's a number
+      user_id: updatedUserChar.user_id,
+      character_id: updatedUserChar.character_id,
+      created_at: updatedUserChar.created_at,
+      level: updatedUserChar.level,
+      attack_stat: updatedUserChar.attack_stat,
+      defense_stat: updatedUserChar.defense_stat,
+      health_stat: updatedUserChar.health_stat,
+      recovery_stat: updatedUserChar.recovery_stat,
+      affection: updatedUserChar.affection,
+      name: updatedUserChar.name,
     };
 
-    // Filter out undefined values if any stat wasn't touched
-    Object.keys(payloadToUpdate).forEach(key => payloadToUpdate[key] === undefined && delete payloadToUpdate[key]);
-
-    console.log('Update Payload (Filtered):', JSON.stringify(payloadToUpdate, null, 2));
+    console.log('Update Payload:', JSON.stringify(payloadToUpdate, null, 2));
     const { error: updateCharError } = await supabase
       .from('user_characters')
-      .update(payloadToUpdate) // Pass the filtered payload
+      .update(payloadToUpdate)
       .eq('id', updatedUserChar.id);
 
     if (updateCharError) {
