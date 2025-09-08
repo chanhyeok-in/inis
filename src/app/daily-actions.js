@@ -87,7 +87,10 @@ export async function performWalk() {
 
   let affectionIncreased = false
   if (Math.random() < 0.10) {
-    const { data: userCharacter } = await supabase.from('user_characters').select('character_id, affection').eq('user_id', user.id).single() // Fetch affection from user_characters
+    const { data: userCharacter, error: userCharError } = await supabase.from('user_characters').select('character_id, affection, name').eq('user_id', user.id).single() // Fetch affection and name from user_characters
+    if (userCharError) {
+      console.error('Error fetching user character for walk:', userCharError);
+    }
     if (userCharacter) {
       const newAffection = userCharacter.affection + 1; // Use affection from user_characters
       console.log(`Attempting to update user_character ${userCharacter.character_id} affection from ${userCharacter.affection} to ${newAffection}`);
@@ -103,9 +106,11 @@ export async function performWalk() {
     }
   }
   
-  let message = '시원한 바람을 맞으며 이니스와 함께 들판을 달렸다.';
+  const inisName = userCharacter?.name || '이니스';
+  const inisSubject = withKoreanPostposition(inisName, '은/는');
+  let message = `${inisSubject} 시원한 바람을 맞으며 함께 들판을 달렸다.`;
   if (affectionIncreased) {
-    message += '\n이니스 기분이 매우 좋아졌습니다 ! (유대감 +1)';
+    message += '\n기분이 매우 좋아졌습니다 ! (유대감 +1)';
   }
   return { success: true, message: message };
 }
@@ -128,7 +133,10 @@ export async function performConversation() {
 
   let affectionIncreased = false
   if (Math.random() < 0.10) {
-    const { data: userCharacter } = await supabase.from('user_characters').select('character_id, affection').eq('user_id', user.id).single() // Fetch affection from user_characters
+    const { data: userCharacter, error: userCharError } = await supabase.from('user_characters').select('character_id, affection, name').eq('user_id', user.id).single() // Fetch affection and name from user_characters
+    if (userCharError) {
+      console.error('Error fetching user character for conversation:', userCharError);
+    }
     if (userCharacter) {
       const newAffection = userCharacter.affection + 1; // Use affection from user_characters
       console.log(`Attempting to update user_character ${userCharacter.character_id} affection from ${userCharacter.affection} to ${newAffection}`);
@@ -144,16 +152,18 @@ export async function performConversation() {
     }
   }
 
+  const inisName = userCharacter?.name || '이니스';
+  const inisSubject = withKoreanPostposition(inisName, '은/는');
   const everydayMessages = [
-    '이니스는 오늘 날씨가 좋다고 말했다.',
-    '이니스는 어제 본 드라마 이야기를 해줬다.',
-    '이니스는 김치찌개는 맛이없다고 말해줬다.',
-    '이니스는 오늘 저녁으로 뭘 먹을지 고민했다.',
+    `${inisSubject} 오늘 날씨가 좋다고 말했다.`,
+    `${inisSubject} 어제 본 드라마 이야기를 해줬다.`,
+    `${inisSubject} 김치찌개는 맛이없다고 말해줬다.`,
+    `${inisSubject} 오늘 저녁으로 뭘 먹을지 고민했다.`,
   ];
 
   let message = '';
   if (affectionIncreased) {
-    message = '이니스와 진심을 이야기 해주었다. (유대감 +1)';
+    message = `${inisSubject} 진심을 이야기 해주었다. (유대감 +1)`;
   } else {
     message = everydayMessages[Math.floor(Math.random() * everydayMessages.length)];
   }
@@ -384,6 +394,13 @@ export async function performBattle(prevState, formData) {
   let levelChange = 0;
   let statIncrease = null; // To store which stat increased
 
+  const statNamesKorean = {
+    'attack_stat': '공격력',
+    'defense_stat': '방어력',
+    'health_stat': '체력',
+    'recovery_stat': '회복력',
+  };
+
   if (didWin) {
     finalMessage = '전투 승리!';
     affectionChange = 1;
@@ -445,12 +462,12 @@ export async function performBattle(prevState, formData) {
   if (didWin) {
     finalMessage += affectionChange > 0 ? ' 유대감이 1 증가했습니다!' : '';
     finalMessage += levelChange > 0 ? ' 레벨이 1 올랐습니다!' : '';
-    finalMessage += statIncrease ? ` ${statIncrease}이(가) 1 증가했습니다!` : '';
+    finalMessage += statIncrease ? ` ${withKoreanPostposition(statNamesKorean[statIncrease], '이/가')} 1 증가했습니다!` : '';
   } else if (didLose) {
     finalMessage += affectionChange > 0 ? ' 유대감이 1 증가했습니다!' : '';
   } else if (didDraw) {
     finalMessage += levelChange > 0 ? ' 레벨이 1 올랐습니다!' : '';
-    finalMessage += statIncrease ? ` ${statIncrease}이(가) 1 증가했습니다!` : '';
+    finalMessage += statIncrease ? ` ${withKoreanPostposition(statNamesKorean[statIncrease], '이/가')} 1 증가했습니다!` : '';
   }
 
   battleLog.push({ type: 'end', message: finalMessage, userHealth, opponentHealth });
