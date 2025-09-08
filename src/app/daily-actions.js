@@ -246,9 +246,7 @@ export async function performBattle(prevState, formData) {
     .single();
 
   if (opponentProfileError || !opponentProfile) {
-    console.warn(`상대방 ID에 대한 프로필을 가져올 수 없습니다: ${opponentId}. 이메일을 기본값으로 설정합니다.`);
-    opponentCharData.email = '알 수 없음';
-  } else {
+    console.warn(`상대방 ID에 대한 프로필을 가져올 수 없습니다: ${opponentId}. 사용자 이름을 기본값으로 설정합니다.`);
     opponentCharData.username = '알 수 없음';
   } else {
     opponentCharData.username = opponentProfile.username;
