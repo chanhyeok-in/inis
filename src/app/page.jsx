@@ -115,17 +115,17 @@ export default async function Home() {
 
       <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'center', gap: '10px' }}>
         <Link href="/walk">
-          <StyledButton>
+          <StyledButton style={{ backgroundColor: '#4CAF50', color: 'white' }}>
             산책하기 ({walkCount}/{maxWalk})
           </StyledButton>
         </Link>
         <Link href="/conversation">
-          <StyledButton>
+          <StyledButton style={{ backgroundColor: '#FFC107', color: 'white' }}>
             대화하기 ({conversationCount}/{maxConversation})
           </StyledButton>
         </Link>
         <Link href="/battle">
-          <StyledButton>
+          <StyledButton style={{ backgroundColor: '#F44336', color: 'white' }}>
             전투하기 ({battleCount}/{maxBattle})
           </StyledButton>
         </Link>
