@@ -6,6 +6,8 @@ import { performWalk } from '../daily-actions'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import AnimatedInis from '../AnimatedInis'
+import StyledButton from '../components/StyledButton'
+import LoadingSpinner from '../components/LoadingSpinner'
 
 export default function WalkPage() {
   const [state, formAction] = useActionState(performWalk, { success: false, message: '' })
@@ -59,21 +61,19 @@ export default function WalkPage() {
       <h1 style={{ marginTop: '20px' }}>산책하기</h1>
       <p style={{ marginBottom: '20px' }}>이니스와 함께 산책하며 유대감을 쌓아보세요. (하루 1회)</p>
 
-      <div style={{ margin: '20px auto', width: '150px', height: '150px' }}>
+      <div style={{ margin: '20px auto', width: '150px', height: '150px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px dashed #ccc', borderRadius: '8px' }}>
         {imageUrl ? (
           <AnimatedInis imageUrl={imageUrl} />
         ) : (
-          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px dashed #ccc', borderRadius: '8px' }}>
-            <p>로딩 중...</p>
-          </div>
+          <LoadingSpinner />
         )}
       </div>
 
       <form action={formAction} ref={formRef}>
         {characterId && <input type="hidden" name="characterId" value={characterId} />} {/* Hidden input */}
-        <button type="submit" aria-disabled={pending}>
+        <StyledButton type="submit" disabled={pending} style={{ marginTop: '20px' }}>
           {pending ? '산책 중...' : '산책 시작'}
-        </button>
+        </StyledButton>
       </form>
 
       {state.message && (

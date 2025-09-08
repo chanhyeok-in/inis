@@ -6,6 +6,8 @@ import { performConversation } from '../daily-actions'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import TalkingInis from './TalkingInis'
+import StyledButton from '../components/StyledButton'
+import LoadingSpinner from '../components/LoadingSpinner'
 
 export default function ConversationPage() {
   const [state, formAction] = useActionState(performConversation, { success: false, message: '' })
@@ -59,21 +61,19 @@ export default function ConversationPage() {
       <h1 style={{ marginTop: '20px' }}>대화하기</h1>
       <p style={{ marginBottom: '20px' }}>이니스와 대화하며 유대감을 쌓아보세요. (하루 3회)</p>
 
-      <div style={{ margin: '20px auto', width: '150px', height: '150px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ margin: '20px auto', width: '150px', height: '150px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px dashed #ccc', borderRadius: '8px' }}>
         {imageUrl ? (
           <TalkingInis imageUrl={imageUrl} />
         ) : (
-          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px dashed #ccc', borderRadius: '8px' }}>
-            <p>로딩 중...</p>
-          </div>
+          <LoadingSpinner />
         )}
       </div>
 
       <form action={formAction} ref={formRef}>
         {characterId && <input type="hidden" name="characterId" value={characterId} />} {/* Hidden input */}
-        <button type="submit" aria-disabled={pending}>
+        <StyledButton type="submit" disabled={pending} style={{ marginTop: '20px' }}>
           {pending ? '대화 중...' : '대화 시작'}
-        </button>
+        </StyledButton>
       </form>
 
       {state.message && (
