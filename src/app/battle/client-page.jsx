@@ -84,16 +84,16 @@ export default function BattlePage() {
         <>
           <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'center', gap: '10px' }}>
             <StyledButton
-              onClick={() => { setBattleMode('nearby'); setFetchedNearbyUsers(null); }}
-              disabled={battleMode === 'nearby'}
-            >
-              근처 이니스와 전투
-            </StyledButton>
-            <StyledButton
               onClick={() => setBattleMode('random')}
               disabled={battleMode === 'random'}
             >
               랜덤 이니스와 전투
+            </StyledButton>
+            <StyledButton
+              onClick={() => { setBattleMode('nearby'); setFetchedNearbyUsers(null); }}
+              disabled={battleMode === 'nearby'}
+            >
+              근처 이니스와 전투
             </StyledButton>
           </div>
 
