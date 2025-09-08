@@ -201,13 +201,23 @@ export async function performBattle(prevState, formData) {
   const { data: updatedProfile } = await supabase.from('profiles').select('battle_count').eq('id', user.id).single()
   if (updatedProfile.battle_count >= 1) return { success: false, message: '오늘은 이미 전투를 했습니다.' }
 
+  const { data: currentUserProfile, error: currentUserProfileError } = await supabase
+    .from('profiles')
+    .select('username')
+    .eq('id', user.id)
+    .single();
+
+  if (currentUserProfileError || !currentUserProfile) {
+    return { success: false, message: '현재 사용자 프로필 정보를 가져올 수 없습니다.' };
+  }
+
   const { data: userCharacterLink } = await supabase.from('user_characters').select('name, level, attack_stat, defense_stat, health_stat, recovery_stat, affection, characters(image_url)').eq('user_id', user.id).single()
   if (!userCharacterLink) return { success: false, message: '사용자 캐릭터를 찾을 수 없습니다.' }
 
   const userChar = {
     ...userCharacterLink,
     image_url: userCharacterLink.characters.image_url,
-    email: user.email, // Add user's email
+    username: currentUserProfile.username, // Use username from profiles
   };
   delete userChar.characters;
 
@@ -228,10 +238,10 @@ export async function performBattle(prevState, formData) {
   };
   delete opponentCharData.characters;
 
-  // Fetch opponent's profile data for email
+  // Fetch opponent's profile data for username
   const { data: opponentProfile, error: opponentProfileError } = await supabase
     .from('profiles')
-    .select('email')
+    .select('username')
     .eq('id', opponentId)
     .single();
 
@@ -239,7 +249,9 @@ export async function performBattle(prevState, formData) {
     console.warn(`상대방 ID에 대한 프로필을 가져올 수 없습니다: ${opponentId}. 이메일을 기본값으로 설정합니다.`);
     opponentCharData.email = '알 수 없음';
   } else {
-    opponentCharData.email = opponentProfile.email;
+    opponentCharData.username = '알 수 없음';
+  } else {
+    opponentCharData.username = opponentProfile.username;
   }
 
   console.log('User Char for Battle:', JSON.stringify(userChar, null, 2));

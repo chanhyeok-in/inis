@@ -52,7 +52,7 @@ export default function BattlePage() {
 
     const { data: nearbyUsersData, error: nearbyUsersError } = await supabase
       .from('profiles')
-      .select('id, email')
+      .select('id, username')
       .eq('latitude', roundedLatitude)
       .eq('longitude', roundedLongitude)
       .neq('id', user.id);
@@ -115,7 +115,7 @@ export default function BattlePage() {
                             value={user.id}
                             style={{ marginRight: '10px' }}
                           />
-                          {user.email}
+                          {user.username}
                         </label>
                       ))}
                     </div>

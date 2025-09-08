@@ -23,7 +23,7 @@ function CharacterDisplay({ character, health, maxHealth, isUser }) {
     <div style={{ textAlign: 'center' }}>
       <h2 style={{ fontSize: '1.1em', fontWeight: 'bold', marginBottom: '4px' }}>{character.name || '이름없음'}</h2>
       <p style={{ fontSize: '0.9em', color: '#555', margin: '0' }}>Lv. {character.level}</p>
-      <p style={{ fontSize: '0.8em', color: '#777', margin: '0 0 8px 0' }}>({character.email})</p>
+      <p style={{ fontSize: '0.8em', color: '#777', margin: '0 0 8px 0' }}>({character.username})</p>
       <NextImage src={character.image_url} alt={character.name} width={150} height={150} style={{ border: `3px solid ${borderColor}`, borderRadius: '8px' }} />
       <p style={{ color: 'black', fontWeight: 'bold', marginTop: '8px' }}>체력: {health} / {maxHealth}</p>
     </div>
