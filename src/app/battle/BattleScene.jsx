@@ -13,7 +13,7 @@ function ActionIcon({ action }) {
 
   if (!iconSrc) return null
 
-  return <NextImage src={iconSrc} alt={action} width={50} height={50} />
+  return <NextImage src={iconSrc} alt={action} width={80} height={80} style={{ filter: 'invert(100%)' }} />
 }
 
 // Helper for character display
@@ -81,9 +81,9 @@ export default function BattleScene({ battleData }) {
     const isActor = animation.active && animation.actor === character
     const style = {
       position: 'absolute',
-      top: '50%',
-      left: '50%',
-      transform: 'translate(-50%, -50%)',
+      top: '-10px',
+      right: '-10px',
+      transform: 'translate(0, 0)',
       opacity: 0,
       transition: 'opacity 0.3s ease-in-out',
       zIndex: 10,
@@ -107,6 +107,38 @@ export default function BattleScene({ battleData }) {
       `}</style>
       <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center', padding: '20px', border: '1px solid #333', borderRadius: '10px', background: 'black', overflow: 'hidden' }}>
         <div style={getInisContainerStyle('user')}>
+          <CharacterDisplay character={userChar} health={health.user} maxHealth={battleLog[0].userHealth} isUser={true} />
+          <div style={getIconContainerStyle('user')}>
+            {animation.active && animation.actor === 'user' && <ActionIcon action={animation.type} />}
+          </div>
+        </div>
+
+        <div style={{ fontSize: '24px', fontWeight: 'bold', color: 'white' }}>VS</div>
+
+        <div style={getInisContainerStyle('opponent')}>
+          <CharacterDisplay character={opponentChar} health={health.opponent} maxHealth={battleLog[0].opponentHealth} isUser={false} />
+          <div style={getIconContainerStyle('opponent')}>
+            {animation.active && animation.actor === 'opponent' && <ActionIcon action={animation.type} />}
+          </div>
+        </div>
+      </div>
+
+      <div style={{ marginTop: '20px', border: '1px solid #ccc', padding: '10px', minHeight: '100px', background: '#fff', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+        <p style={{ color: 'black', whiteSpace: 'pre-wrap', textAlign: 'center', fontWeight: 'bold' }}>{currentLogEntry.message}</p>
+      </div>
+
+      {!isBattleOver ? (
+        null
+      ) : (
+        <div style={{ marginTop: '20px', fontWeight: 'bold', color: didWin ? 'green' : 'red', textAlign: 'center' }}>
+          <h2>{didWin ? '승리!' : '패배!'}</h2>
+          {affectionIncreased && <p>유대감이 1 증가했습니다!</p>}
+        </div>
+      )}
+    </div>
+  )
+}
+
           <CharacterDisplay character={userChar} health={health.user} maxHealth={battleLog[0].userHealth} isUser={true} />
           <div style={getIconContainerStyle('user')}>
             {animation.active && animation.actor === 'user' && <ActionIcon action={animation.type} />}

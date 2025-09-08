@@ -438,13 +438,13 @@ export async function performBattle(prevState, formData) {
   if (levelChange > 0 || affectionChange > 0 || statIncrease) { // Check if any changes were made
     // Create a payload with only the columns that belong to user_characters
     const payloadToUpdate = {
-      level: updatedUserChar.level,
-      affection: updatedUserChar.affection,
-      name: updatedUserChar.name, // Ensure name is included if it exists
-      attack_stat: updatedUserChar.attack_stat,
-      defense_stat: updatedUserChar.defense_stat,
-      health_stat: updatedUserChar.health_stat,
-      recovery_stat: updatedUserChar.recovery_stat,
+      level: updatedUserChar.level ?? 0, // Ensure it's a number
+      affection: updatedUserChar.affection ?? 0, // Ensure it's a number
+      name: updatedUserChar.name, // Name can be string or null
+      attack_stat: updatedUserChar.attack_stat ?? 0, // Ensure it's a number
+      defense_stat: updatedUserChar.defense_stat ?? 0, // Ensure it's a number
+      health_stat: updatedUserChar.health_stat ?? 0, // Ensure it's a number
+      recovery_stat: updatedUserChar.recovery_stat ?? 0, // Ensure it's a number
     };
 
     // Filter out undefined values if any stat wasn't touched
