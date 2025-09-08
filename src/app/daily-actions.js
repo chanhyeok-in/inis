@@ -422,6 +422,7 @@ export async function performBattle(prevState, formData) {
   }
 
   if (Object.keys(updatePayload).length > 0) {
+    console.log('Update Payload:', JSON.stringify(updatePayload, null, 2));
     const { error: updateCharError } = await supabase
       .from('user_characters')
       .update(updatePayload)
