@@ -436,10 +436,24 @@ export async function performBattle(prevState, formData) {
   }
 
   if (levelChange > 0 || affectionChange > 0 || statIncrease) { // Check if any changes were made
-    console.log('Update Payload (Full Row):', JSON.stringify(updatedUserChar, null, 2));
+    // Create a payload with only the columns that belong to user_characters
+    const payloadToUpdate = {
+      level: updatedUserChar.level,
+      affection: updatedUserChar.affection,
+      name: updatedUserChar.name, // Ensure name is included if it exists
+      attack_stat: updatedUserChar.attack_stat,
+      defense_stat: updatedUserChar.defense_stat,
+      health_stat: updatedUserChar.health_stat,
+      recovery_stat: updatedUserChar.recovery_stat,
+    };
+
+    // Filter out undefined values if any stat wasn't touched
+    Object.keys(payloadToUpdate).forEach(key => payloadToUpdate[key] === undefined && delete payloadToUpdate[key]);
+
+    console.log('Update Payload (Filtered):', JSON.stringify(payloadToUpdate, null, 2));
     const { error: updateCharError } = await supabase
       .from('user_characters')
-      .update(updatedUserChar) // Pass the full updated object
+      .update(payloadToUpdate) // Pass the filtered payload
       .eq('id', updatedUserChar.id);
 
     if (updateCharError) {
