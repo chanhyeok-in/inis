@@ -114,18 +114,18 @@ export default async function Home() {
       </div>
 
       <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'center', gap: '10px' }}>
-        <Link href="/walk" passHref legacyBehavior>
-          <StyledButton as="a">
+        <Link href="/walk">
+          <StyledButton>
             산책하기 ({walkCount}/{maxWalk})
           </StyledButton>
         </Link>
-        <Link href="/conversation" passHref legacyBehavior>
-          <StyledButton as="a">
+        <Link href="/conversation">
+          <StyledButton>
             대화하기 ({conversationCount}/{maxConversation})
           </StyledButton>
         </Link>
-        <Link href="/battle" passHref legacyBehavior>
-          <StyledButton as="a">
+        <Link href="/battle">
+          <StyledButton>
             전투하기 ({battleCount}/{maxBattle})
           </StyledButton>
         </Link>
