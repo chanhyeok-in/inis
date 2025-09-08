@@ -125,4 +125,9 @@ TODO
     *   **일일 활동 버튼 가시성:** 일일 활동 가능 횟수를 모두 소진한 경우 버튼이 흐리게 표시되도록 개선 (클릭 가능 유지).
 
 4.  **기술 부채 해결:**
-    *   Next.js `Link` 컴포넌트의 `legacyBehavior` 사용 중단 경고 해결.
+    *   Next.js `Link` 컴포넌트의 `legacyBehavior` 사용 중단 경고 해결."
+
+5.  **캐릭터 스탯 업데이트 로직 개선:**
+    *   `src/app/daily-actions.js`의 `performWalk`, `performConversation`, `performBattle` 함수에서 캐릭터 스탯 업데이트 시 `id`, `user_id`, `character_id`, `created_at`, `level`, `attack_stat`, `defense_stat`, `health_stat`, `recovery_stat`, `affection`, `name`을 포함한 모든 관련 컬럼을 함께 전달하도록 수정했습니다. 이는 데이터 무결성을 보장하고 이전의 `bigint: "undefined"` 오류를 해결하기 위함입니다.
+
+이 문서는 Gemini CLI Agent에 의해 커밋 및 푸시되었습니다.
