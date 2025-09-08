@@ -227,6 +227,9 @@ export async function performBattle(prevState, formData) {
   };
   delete opponentCharData.characters;
 
+  console.log('User Char for Battle:', JSON.stringify(userChar, null, 2));
+  console.log('Opponent Char for Battle:', JSON.stringify(opponentCharData, null, 2));
+
   await supabase.from('profiles').update({ battle_count: updatedProfile.battle_count + 1 }).eq('id', user.id)
 
   const userCalculatedStats = calculateInisStats(userChar)

@@ -106,7 +106,7 @@ export default function BattleScene({ battleData }) {
             <NextImage src={userChar.image_url} alt="My Inis" width={150} height={150} style={{ border: '2px solid blue', borderRadius: '8px' }} />
           </div>
           <div style={getIconStyle('user')}>
-            <ActionIcon action={animation.type} />
+            {animation.active && animation.actor === 'user' && <ActionIcon action={animation.type} />}
           </div>
           <p>체력: {health.user} / {battleLog[0].userHealth}</p>
         </div>
@@ -120,7 +120,7 @@ export default function BattleScene({ battleData }) {
             <NextImage src={opponentChar.image_url} alt="Opponent Inis" width={150} height={150} style={{ border: '2px solid red', borderRadius: '8px' }} />
           </div>
            <div style={getIconStyle('opponent')}>
-            <ActionIcon action={animation.type} />
+            {animation.active && animation.actor === 'opponent' && <ActionIcon action={animation.type} />}
           </div>
           <p>체력: {health.opponent} / {battleLog[0].opponentHealth}</p>
         </div>
