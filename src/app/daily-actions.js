@@ -236,48 +236,87 @@ export async function performBattle(prevState, formData) {
   let opponentHealth = opponentCalculatedStats.max_health;
 
   const battleLog = [];
-  battleLog.push({ message: '전투 시작!', userHealth, opponentHealth });
+  battleLog.push({ type: 'start', message: '전투 시작!', userHealth, opponentHealth });
 
-  let turn = 1
-  const maxTurns = 20
+  let turn = 1;
+  const maxTurns = 20;
 
   while (userHealth > 0 && opponentHealth > 0 && turn <= maxTurns) {
-    let turnMessage = `--- 턴 ${turn} ---
-`;
+    // --- User's Turn ---
+    const userAction = getBattleAction(userChar.affection);
+    let userDamage = 0;
+    let userMessage = '';
 
-    const userAction = getBattleAction(userChar.affection)
-    turnMessage += `내 이니스 행동: ${userAction}`
     if (userAction === 'attack') {
-      const damage = Math.max(0, userCalculatedStats.attack_power - opponentCalculatedStats.defense_power)
-      opponentHealth -= damage
-      turnMessage += `
-상대에게 ${damage}의 데미지!`
-    } else {
-      turnMessage += '\n아무 일도 일어나지 않았다.'
+      userDamage = Math.max(0, userCalculatedStats.attack_power - opponentCalculatedStats.defense_power);
+      opponentHealth -= userDamage;
+      userMessage = `상대에게 ${userDamage}의 데미지를 입혔다!`;
+    } else if (userAction === 'understand') {
+      userMessage = '유저의 말을 이해하지 못했다!';
+    } else if (userAction === 'space_out') {
+      userMessage = '멍때리고 있다!';
+    } else { // not_listen
+      userMessage = '유저의 말을 듣지 않는다!';
     }
-    battleLog.push({ message: turnMessage, userHealth, opponentHealth: Math.max(0, opponentHealth) });
+
+    battleLog.push({
+      type: 'action',
+      turn,
+      actor: 'user',
+      action: userAction,
+      damage: userDamage,
+      message: userMessage,
+      userHealth,
+      opponentHealth: Math.max(0, opponentHealth),
+    });
+
     if (opponentHealth <= 0) break;
 
-    const opponentAction = getBattleAction(opponentCharData.affection)
-    turnMessage = `상대 이니스 행동: ${opponentAction}`
+    // --- Opponent's Turn ---
+    const opponentAction = getBattleAction(opponentCharData.affection);
+    let opponentDamage = 0;
+    let opponentMessage = '';
+
     if (opponentAction === 'attack') {
-      const damage = Math.max(0, opponentCalculatedStats.attack_power - userCalculatedStats.defense_power)
-      userHealth -= damage
-      turnMessage += `
-내게 ${damage}의 데미지!`
-    } else {
-      turnMessage += '\n아무 일도 일어나지 않았다.'
+      opponentDamage = Math.max(0, opponentCalculatedStats.attack_power - userCalculatedStats.defense_power);
+      userHealth -= opponentDamage;
+      opponentMessage = `내게 ${opponentDamage}의 데미지를 입혔다!`;
+    } else if (opponentAction === 'understand') {
+      opponentMessage = '유저의 말을 이해하지 못했다!';
+    } else if (opponentAction === 'space_out') {
+      opponentMessage = '멍때리고 있다!';
+    } else { // not_listen
+      opponentMessage = '유저의 말을 듣지 않는다!';
     }
-    battleLog.push({ message: turnMessage, userHealth: Math.max(0, userHealth), opponentHealth });
+
+    battleLog.push({
+      type: 'action',
+      turn,
+      actor: 'opponent',
+      action: opponentAction,
+      damage: opponentDamage,
+      message: opponentMessage,
+      userHealth: Math.max(0, userHealth),
+      opponentHealth,
+    });
+
     if (userHealth <= 0) break;
 
+    // --- Recovery Phase ---
     const userRecovery = userCalculatedStats.recovery_power;
     const opponentRecovery = opponentCalculatedStats.recovery_power;
-    userHealth = Math.min(userCalculatedStats.max_health, userHealth + userRecovery)
-    opponentHealth = Math.min(opponentCalculatedStats.max_health, opponentHealth + opponentRecovery)
-    battleLog.push({ message: '양측 모두 체력을 일부 회복했다.', userHealth, opponentHealth });
+    if (userRecovery > 0 || opponentRecovery > 0) {
+        userHealth = Math.min(userCalculatedStats.max_health, userHealth + userRecovery);
+        opponentHealth = Math.min(opponentCalculatedStats.max_health, opponentHealth + opponentRecovery);
+        battleLog.push({
+            type: 'recovery',
+            message: `양측 모두 체력을 일부 회복했다. (나: +${userRecovery}, 상대: +${opponentRecovery})`,
+            userHealth,
+            opponentHealth,
+        });
+    }
 
-    turn++
+    turn++;
   }
 
   const didWin = userHealth > 0
@@ -291,7 +330,7 @@ export async function performBattle(prevState, formData) {
   }
 
   const finalMessage = didWin ? (affectionIncreased ? '전투 승리! 유대감이 1 증가했습니다!' : '전투 승리!') : '전투 패배!';
-  battleLog.push({ message: finalMessage, userHealth, opponentHealth });
+  battleLog.push({ type: 'end', message: finalMessage, userHealth, opponentHealth });
 
   return {
     success: true,
