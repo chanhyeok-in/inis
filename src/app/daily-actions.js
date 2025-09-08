@@ -296,9 +296,12 @@ export async function performBattle(prevState, formData) {
     const userSubject = withKoreanPostposition(userName, '은/는');
 
     if (userAction === 'attack') {
-      userDamage = Math.max(0, userCalculatedStats.attack_power - opponentCalculatedStats.defense_power);
+      let baseDamage = 3 * (1 + userChar.attack_stat);
+      const isCritical = Math.random() < 0.25;
+      userDamage = isCritical ? baseDamage * 2 : baseDamage;
       opponentHealth -= userDamage;
       userMessage = `${userSubject} 상대에게 ${userDamage}의 데미지를 입혔다!`;
+      if (isCritical) userMessage += ' (크리티컬!)';
     } else if (userAction === 'understand') {
       userMessage = `${userSubject} 유저의 말을 이해하지 못했다!`;
     } else if (userAction === 'space_out') {
@@ -328,9 +331,12 @@ export async function performBattle(prevState, formData) {
     const opponentSubject = withKoreanPostposition(opponentName, '은/는');
 
     if (opponentAction === 'attack') {
-      opponentDamage = Math.max(0, opponentCalculatedStats.attack_power - userCalculatedStats.defense_power);
+      let baseDamage = 3 * (1 + opponentCharData.attack_stat);
+      const isCritical = Math.random() < 0.25;
+      opponentDamage = isCritical ? baseDamage * 2 : baseDamage;
       userHealth -= opponentDamage;
       opponentMessage = `${opponentSubject} 내게 ${opponentDamage}의 데미지를 입혔다!`;
+      if (isCritical) opponentMessage += ' (크리티컬!)';
     } else if (opponentAction === 'understand') {
       opponentMessage = `${opponentSubject} 유저의 말을 이해하지 못했다!`;
     } else if (opponentAction === 'space_out') {

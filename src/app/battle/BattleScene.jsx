@@ -41,10 +41,11 @@ export default function BattleScene({ battleData }) {
 
   useEffect(() => {
     const entry = battleLog[logIndex]
+    const animationTime = 1000; // Shorter animation time
+
     if (entry.type === 'action') {
       setAnimation({ active: true, type: entry.action, actor: entry.actor })
 
-      const animationTime = 1500 // ms
       setTimeout(() => {
         setHealth({ user: entry.userHealth, opponent: entry.opponentHealth })
         setAnimation({ active: false, type: null, actor: null })
@@ -52,13 +53,16 @@ export default function BattleScene({ battleData }) {
     } else {
       setHealth({ user: entry.userHealth, opponent: entry.opponentHealth })
     }
-  }, [logIndex, battleLog])
 
-  const handleNext = () => {
-    if (logIndex < battleLog.length - 1 && !animation.active) {
-      setLogIndex(logIndex + 1)
+    // Auto-advance logic
+    const autoAdvanceDelay = entry.type === 'action' ? 2500 : 1500; // Longer delay for actions
+    if (!isBattleOver) {
+      const timer = setTimeout(() => {
+        setLogIndex(prevIndex => prevIndex + 1);
+      }, autoAdvanceDelay);
+      return () => clearTimeout(timer);
     }
-  }
+  }, [logIndex, battleLog, isBattleOver])
 
   const getInisContainerStyle = (character) => {
     const isActor = animation.active && animation.actor === character
@@ -124,9 +128,7 @@ export default function BattleScene({ battleData }) {
       </div>
 
       {!isBattleOver ? (
-        <StyledButton onClick={handleNext} disabled={animation.active} style={{ marginTop: '20px' }}>
-          {animation.active ? '(액션 진행중...)' : '다음'}
-        </StyledButton>
+        null
       ) : (
         <div style={{ marginTop: '20px', fontWeight: 'bold', color: didWin ? 'green' : 'red', textAlign: 'center' }}>
           <h2>{didWin ? '승리!' : '패배!'}</h2>

@@ -4,10 +4,10 @@ export function calculateInisStats(stats) {
   const baseHealth = 20;
   const baseRecovery = 0;
 
-  const attack_power = baseAttack + ((stats.attack_stat ?? 0) * 3);
-  const defense_power = baseDefense + ((stats.defense_stat ?? 0) * 3);
-  const max_health = baseHealth + ((stats.health_stat ?? 0) * 5);
-  const recovery_power = baseRecovery + ((stats.recovery_stat ?? 0) * 1);
+  const attack_power = 3 * (1 + (stats.attack_stat ?? 0));
+  const defense_power = 2 * (1 + (stats.defense_stat ?? 0));
+  const max_health = 20 + (5 * (stats.health_stat ?? 0));
+  const recovery_power = 1 + (stats.recovery_stat ?? 0);
 
   return {
     attack_power,
