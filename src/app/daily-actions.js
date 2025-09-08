@@ -209,7 +209,7 @@ export async function performBattle(prevState, formData) {
   // Fetch opponent's character data
   const { data: opponentCharacterLink, error: oppCharLinkError } = await supabase
     .from('user_characters')
-    .select('character_id, name, image_url, level, attack_stat, defense_stat, health_stat, recovery_stat, affection')
+    .select('character_id, name, level, attack_stat, defense_stat, health_stat, recovery_stat, affection, characters(image_url)')
     .eq('user_id', opponentId)
     .single();
 
