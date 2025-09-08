@@ -8,11 +8,13 @@ export default async function Home() {
 
   const { data: { user } } = await supabase.auth.getUser()
 
+  console.log('User ID:', user?.id); // Log user ID
+
   if (!user) {
     redirect('/login')
   }
 
-  const { data: userCharacters } = await supabase
+  const { data: userCharacters, error: fetchUserCharactersError } = await supabase
     .from('user_characters')
     .select(`
       id,
@@ -29,8 +31,14 @@ export default async function Home() {
     `)
     .eq('user_id', user.id)
 
+  if (fetchUserCharactersError) {
+    console.error('Error fetching user characters:', fetchUserCharactersError); // Log fetch error
+  }
+  console.log('User Characters:', userCharacters); // Log userCharacters data
+
   const needsNaming = userCharacters?.some(uc => !uc.name || uc.name.trim() === '');
   if (needsNaming) {
+    console.log('Redirecting to /name-inis because Inis needs naming.'); // Log redirect
     redirect('/name-inis');
   }
 

@@ -1,7 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useActionState } from 'react-dom'
+import { useState, useEffect, useActionState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { nameInis } from '../daily-actions' // We will create this action next
 import { useRouter } from 'next/navigation'
