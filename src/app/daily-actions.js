@@ -421,35 +421,25 @@ export async function performBattle(prevState, formData) {
 
   // Update user_characters table
   let updatedUserChar = { ...userChar };
-  let updatePayload = {};
-
-  // Ensure initial stats are numbers
-  const currentLevel = updatedUserChar.level ?? 0;
-  const currentAffection = updatedUserChar.affection ?? 0;
-  const currentAttackStat = updatedUserChar.attack_stat ?? 0;
-  const currentDefenseStat = updatedUserChar.defense_stat ?? 0;
-  const currentHealthStat = updatedUserChar.health_stat ?? 0;
-  const currentRecoveryStat = updatedUserChar.recovery_stat ?? 0;
 
   if (levelChange > 0) {
-    updatePayload.level = currentLevel + levelChange;
+    updatedUserChar.level += levelChange;
   }
 
   if (affectionChange > 0) {
-    updatePayload.affection = currentAffection + affectionChange;
+    updatedUserChar.affection += affectionChange;
   }
 
   if (statIncrease) {
-    // Get the current value of the stat, default to 0 if null/undefined
     const currentStatValue = updatedUserChar[statIncrease] ?? 0;
-    updatePayload[statIncrease] = currentStatValue + 1;
+    updatedUserChar[statIncrease] = currentStatValue + 1;
   }
 
-  if (Object.keys(updatePayload).length > 0) {
-    console.log('Update Payload:', JSON.stringify(updatePayload, null, 2));
+  if (levelChange > 0 || affectionChange > 0 || statIncrease) { // Check if any changes were made
+    console.log('Update Payload (Full Row):', JSON.stringify(updatedUserChar, null, 2));
     const { error: updateCharError } = await supabase
       .from('user_characters')
-      .update(updatePayload)
+      .update(updatedUserChar) // Pass the full updated object
       .eq('id', updatedUserChar.id);
 
     if (updateCharError) {
