@@ -330,7 +330,8 @@ export async function performBattle(prevState, formData) {
     const userSubject = withKoreanPostposition(userName, '은/는');
 
     if (userAction === 'attack') {
-      let baseDamage = 6 * (1 + userChar.attack_stat);
+      let calculatedDamage = (6 * (1 + userChar.attack_stat)) - (2 * (1 + opponentCharData.defense_stat));
+      let baseDamage = Math.max(0, calculatedDamage); // Damage cannot be negative
       const isCritical = Math.random() < 0.25;
       userDamage = isCritical ? baseDamage * 2 : baseDamage;
       opponentHealth -= userDamage;
@@ -365,7 +366,8 @@ export async function performBattle(prevState, formData) {
     const opponentSubject = withKoreanPostposition(opponentName, '은/는');
 
     if (opponentAction === 'attack') {
-      let baseDamage = 6 * (1 + opponentCharData.attack_stat);
+      let calculatedDamage = (6 * (1 + opponentCharData.attack_stat)) - (2 * (1 + userChar.defense_stat));
+      let baseDamage = Math.max(0, calculatedDamage); // Damage cannot be negative
       const isCritical = Math.random() < 0.25;
       opponentDamage = isCritical ? baseDamage * 2 : baseDamage;
       userHealth -= opponentDamage;
