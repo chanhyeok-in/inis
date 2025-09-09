@@ -80,6 +80,19 @@ export default function BattlePage() {
       <Link href="/" style={{ textDecoration: 'underline' }}>&larr; 홈으로 돌아가기</Link>
       <h1 style={{ marginTop: '20px' }}>전투하기</h1>
 
+      <div style={{ border: '1px solid #eee', padding: '15px', borderRadius: '8px', marginBottom: '20px', backgroundColor: '#f9f9f9', color: '#333' }}>
+        <h4 style={{ marginTop: '0', marginBottom: '10px', color: '#0056b3' }}>전투 시스템 설명</h4>
+        <p style={{ fontSize: '0.9em', lineHeight: '1.4' }}>
+          <strong>스탯 성장:</strong> 랜덤 이니스와의 전투에서 승리하거나 무승부 시, 이니스의 스탯(공격력, 방어력, 체력, 회복력 중 하나)이 무작위로 1 증가합니다.
+        </p>
+        <p style={{ fontSize: '0.9em', lineHeight: '1.4' }}>
+          <strong>유대감의 중요성:</strong> 이니스와의 유대감이 높을수록 전투 시 이니스가 '공격했다!' 행동을 할 확률이 높아지고, '유저의 말을 듣지 않는다!' 행동을 할 확률이 낮아집니다.
+        </p>
+        <p style={{ fontSize: '0.9em', lineHeight: '1.4' }}>
+          <strong>근처 이니스 전투:</strong> 근처 이니스와의 전투는 횟수 제한이 없으며, 스탯이나 유대감 보상이 없습니다. 연습 전투로 활용하세요.
+        </p>
+      </div>
+
       {state.battleData ? (
         <BattleScene battleData={state.battleData} />
       ) : (
