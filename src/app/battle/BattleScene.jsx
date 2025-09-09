@@ -6,14 +6,21 @@ import StyledButton from '../components/StyledButton'
 
 // Helper for action icons
 function ActionIcon({ action }) {
-  let iconSrc = null
-  if (action === 'understand') iconSrc = '/question.svg'
-  if (action === 'space_out') iconSrc = '/ellipsis.svg'
-  if (action === 'not_listen') iconSrc = '/cross.svg'
+  let content = null;
+  let style = {};
 
-  if (!iconSrc) return null
+  if (action === 'understand') {
+    content = '?';
+    style = { fontSize: '80px', color: 'white', fontWeight: 'bold', textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }; // Larger, white, bold question mark
+  } else if (action === 'space_out') {
+    content = <NextImage src="/ellipsis.svg" alt={action} width={80} height={80} style={{ filter: 'invert(100%)' }} />;
+  } else if (action === 'not_listen') {
+    content = <NextImage src="/cross.svg" alt={action} width={80} height={80} style={{ filter: 'invert(100%)' }} />;
+  }
 
-  return <NextImage src={iconSrc} alt={action} width={80} height={80} style={{ filter: 'invert(100%)' }} />
+  if (!content) return null;
+
+  return <div style={style}>{content}</div>;
 }
 
 // Helper for character display
@@ -81,18 +88,21 @@ export default function BattleScene({ battleData }) {
     const isActor = animation.active && animation.actor === character
     const style = {
       position: 'absolute',
-      top: '-10px',
-      right: '-10px',
-      transform: 'translate(0, 0)',
+      top: '0px', // Adjusted to be closer to the top corner
+      right: '0px', // Adjusted to be closer to the right corner
+      transform: 'translate(0, 0)', // Initial transform
       opacity: 0,
       transition: 'opacity 0.3s ease-in-out',
       zIndex: 10,
+      display: 'flex', // Use flexbox for centering content if needed
+      justifyContent: 'center',
+      alignItems: 'center',
+      width: '100px', // Give it a fixed size to position the icon
+      height: '100px',
     }
     if (isActor && ['understand', 'space_out', 'not_listen'].includes(animation.type)) {
       style.opacity = 1
-      if (animation.type === 'understand') {
-        style.animation = 'shake 0.5s linear infinite'
-      }
+      // Removed shake animation for 'understand' to make it static and prominent
     }
     return style
   }
