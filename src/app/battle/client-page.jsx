@@ -52,7 +52,7 @@ export default function BattlePage() {
 
     const { data: nearbyUsersData, error: nearbyUsersError } = await supabase
       .from('profiles')
-      .select('id, username')
+      .select('id, username, user_characters(level, characters(image_url))') // Include user_characters data
       .gte('latitude', roundedLatitude - 0.1)
       .lt('latitude', roundedLatitude + 0.1)
       .gte('longitude', roundedLongitude - 0.1)
@@ -109,17 +109,23 @@ export default function BattlePage() {
                   <form action={formAction}>
                     <input type="hidden" name="battleMode" value="nearby" />
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxWidth: '300px', margin: '0 auto' }}>
-                      {fetchedNearbyUsers.map(user => (
-                        <label key={user.id} style={{ border: '1px solid #ccc', padding: '10px', borderRadius: '5px', display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
-                          <input
-                            type="radio"
-                            name="opponentId"
-                            value={user.id}
-                            style={{ marginRight: '10px' }}
-                          />
-                          {user.username}
-                        </label>
-                      ))}
+                      {fetchedNearbyUsers.map(profile => {
+                        const inis = profile.user_characters?.[0]; // Assuming one Inis per user for display
+                        if (!inis || !inis.characters) return null; // Skip if no Inis data
+
+                        return (
+                          <label key={profile.id} style={{ border: '1px solid #ccc', padding: '10px', borderRadius: '5px', display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                            <input
+                              type="radio"
+                              name="opponentId"
+                              value={profile.id}
+                              style={{ marginRight: '10px' }}
+                            />
+                            <img src={inis.characters.image_url} alt="Inis Image" style={{ width: '40px', height: '40px', marginRight: '10px', borderRadius: '50%' }} />
+                            <span>{profile.username} (Lv.{inis.level})</span>
+                          </label>
+                        );
+                      })}
                     </div>
                     <SubmitButton style={{ marginTop: '20px' }}>
                       선택한 이니스와 전투 시작
