@@ -51,7 +51,7 @@ function withKoreanPostposition(name, particle) {
   return name;
 }
 
-async function checkAndResetDailyCounts(supabase, userId, profile) {
+export async function checkAndResetDailyCounts(supabase, userId, profile) {
   const now = new Date()
   const lastReset = new Date(profile.last_daily_reset)
 

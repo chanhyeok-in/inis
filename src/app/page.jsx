@@ -4,6 +4,7 @@ import AnimatedInis from './AnimatedInis'
 import { calculateInisStats } from '@/lib/inis/stats';
 import Link from 'next/link'; // Import Link
 import StyledButton from './components/StyledButton'; // Import StyledButton
+import { checkAndResetDailyCounts } from './daily-actions'; // Import checkAndResetDailyCounts
 
 export default async function Home() {
   const supabase = await getSupabaseServerClient()
@@ -17,14 +18,30 @@ export default async function Home() {
   }
 
   // Fetch profile counts
-  const { data: profile, error: profileError } = await supabase
+  let { data: profile, error: profileError } = await supabase // Use 'let' for profile
     .from('profiles')
-    .select('walk_count, conversation_count, battle_count')
+    .select('walk_count, conversation_count, battle_count, last_daily_reset') // Add last_daily_reset
     .eq('id', user.id)
     .single();
 
   if (profileError) {
     console.error('Error fetching profile counts:', profileError);
+  }
+
+  if (profile) { // Only proceed if profile was successfully fetched
+    await checkAndResetDailyCounts(supabase, user.id, profile);
+    // Re-fetch profile to get updated counts after potential reset
+    const { data: updatedProfile, error: updatedProfileError } = await supabase
+      .from('profiles')
+      .select('walk_count, conversation_count, battle_count, last_daily_reset')
+      .eq('id', user.id)
+      .single();
+
+    if (updatedProfileError) {
+      console.error('Error re-fetching profile after reset check:', updatedProfileError);
+    } else {
+      profile = updatedProfile; // Use the updated profile
+    }
   }
 
   const walkCount = profile?.walk_count ?? 0;
