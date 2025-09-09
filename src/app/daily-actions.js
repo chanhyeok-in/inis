@@ -255,7 +255,7 @@ export async function performBattle(prevState, formData) {
     return { success: false, message: '유효하지 않은 전투 모드입니다.' };
   }
 
-  const { data: profile, error: profileError } = await supabase.from('profiles').select('battle_count, last_daily_reset').eq('id', user.id).single()
+  const { data: profile, error: profileError } = await supabase.from('profiles').select('battle_count, last_daily_reset, ranked_win, ranked_draw, ranked_lose, normal_win, normal_draw, normal_lose').eq('id', user.id).single()
   if (profileError || !profile) return { success: false, message: '프로필을 찾을 수 없습니다.' }
 
   await checkAndResetDailyCounts(supabase, user.id, profile) // Always check and reset daily counts
@@ -508,6 +508,72 @@ export async function performBattle(prevState, formData) {
       console.error('Error updating user character stats:', updateCharError);
       finalMessage += ' (스탯 업데이트 실패)';
     }
+  }
+
+  // --- Update Battle Statistics in profiles table ---
+  if (profile) { // Ensure profile data is available
+    let updatedProfileStats = { ...profile }; // Create a mutable copy
+
+    const battleTypePrefix = battleMode === 'random' ? 'ranked' : 'normal';
+    let resultSuffix = '';
+
+    if (didWin) {
+      resultSuffix = 'win';
+    } else if (didDraw) {
+      resultSuffix = 'draw';
+    } else if (didLose) {
+      resultSuffix = 'lose';
+    }
+
+    const statToIncrement = `${battleTypePrefix}_${resultSuffix}`;
+    updatedProfileStats[statToIncrement] = (updatedProfileStats[statToIncrement] || 0) + 1;
+
+    const { error: updateProfileStatsError } = await supabase
+      .from('profiles')
+      .update({
+        ranked_win: updatedProfileStats.ranked_win,
+        ranked_draw: updatedProfileStats.ranked_draw,
+        ranked_lose: updatedProfileStats.ranked_lose,
+        normal_win: updatedProfileStats.normal_win,
+        normal_draw: updatedProfileStats.normal_draw,
+        normal_lose: updatedProfileStats.normal_lose,
+      })
+      .eq('id', user.id);
+
+    if (updateProfileStatsError) {
+      console.error('Error updating profile battle stats:', updateProfileStatsError);
+    }
+  }
+
+  // --- Record Battle History in battle_hist table ---
+  let resultType = '';
+  let winnerId = null;
+
+  if (didWin) {
+    resultType = 'WIN';
+    winnerId = user.id;
+  } else if (didDraw) {
+    resultType = 'DRAW';
+    winnerId = null;
+  } else if (didLose) {
+    resultType = 'LOSE';
+    winnerId = opponentId; // Opponent wins, so opponentId is the winner
+  }
+
+  const { error: insertBattleHistError } = await supabase
+    .from('battle_hist')
+    .insert([
+      {
+        opponent1_id: user.id,
+        opponent2_id: opponentId,
+        result_type: resultType,
+        winner_id: winnerId,
+        battle_timestamp: new Date().toISOString(),
+      },
+    ]);
+
+  if (insertBattleHistError) {
+    console.error('Error inserting battle history:', insertBattleHistError);
   }
 
   // Add specific messages for stat/affection changes
