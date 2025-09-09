@@ -58,7 +58,7 @@ async function checkAndResetDailyCounts(supabase, userId, profile) {
   if (now.getUTCDay() !== lastReset.getUTCDay() || now.getUTCMonth() !== lastReset.getUTCMonth() || now.getUTCFullYear() !== lastReset.getUTCFullYear()) {
     const { error } = await supabase
       .from('profiles')
-      .update({ walk_count: 0, conversation_count: 0, battle_count: 0, last_daily_reset: now.toISOString() })
+      .update({ walk_count: 0, conversation_count: 0, battle_count: 0, last_daily_reset: new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1, 0, 0, 0, 0)).toISOString() })
       .eq('id', userId)
     if (error) {
       console.error('Error resetting daily counts:', error)
