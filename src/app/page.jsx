@@ -5,8 +5,11 @@ import { calculateInisStats } from '@/lib/inis/stats';
 import Link from 'next/link'; // Import Link
 import StyledButton from './components/StyledButton'; // Import StyledButton
 import { checkAndResetDailyCounts } from './daily-actions'; // Import checkAndResetDailyCounts
+import { useState } from 'react'; // Import useState
+import BattleHistoryModal from './components/BattleHistoryModal'; // Import BattleHistoryModal
 
 export default async function Home() {
+  const [showBattleHistory, setShowBattleHistory] = useState(false); // State for showing battle history modal
   const supabase = await getSupabaseServerClient()
 
   const { data: { user } } = await supabase.auth.getUser()
@@ -84,6 +87,9 @@ export default async function Home() {
     <div style={{ padding: '20px', textAlign: 'center' }}>
       <div style={{ position: 'absolute', top: '10px', right: '20px' }}>
         <span>{user.email}</span>
+        <button onClick={() => setShowBattleHistory(true)} style={{ marginLeft: '10px', padding: '8px 12px', border: 'none', borderRadius: '5px', background: '#007bff', color: 'white', cursor: 'pointer' }}>
+          전투 기록 보기
+        </button>
         <form action="/auth/signout" method="post" style={{ display: 'inline', marginLeft: '10px' }}>
           <button type="submit">로그아웃</button>
         </form>
@@ -148,5 +154,6 @@ export default async function Home() {
         </Link>
       </div>
     </div>
+    {showBattleHistory && <BattleHistoryModal userId={user.id} onClose={() => setShowBattleHistory(false)} />}
   )
 }

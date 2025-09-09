@@ -569,6 +569,7 @@ export async function performBattle(prevState, formData) {
         result_type: resultType,
         winner_id: winnerId,
         battle_timestamp: new Date().toISOString(),
+        battle_type: battleTypePrefix, // Add battle_type
       },
     ]);
 
