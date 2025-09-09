@@ -2,6 +2,7 @@
 
 import { calculateInisStats } from '@/lib/inis/stats.js';
 import { getSupabaseServerClient } from '@/lib/supabase/server-utils.js';
+import { revalidatePath } from 'next/cache';
 
 // Helper to get action based on affection
 function getBattleAction(affection) {
@@ -84,6 +85,7 @@ export async function performWalk() {
 
   const { error: updateError } = await supabase.from('profiles').update({ walk_count: updatedProfile.walk_count + 1 }).eq('id', user.id)
   if (updateError) return { success: false, message: '산책 횟수 업데이트에 실패했습니다.' }
+  revalidatePath('/'); // Revalidate the main page to show updated counts
 
   let affectionIncreased = false
   let userCharacter = null; // Declare userCharacter outside the if block
@@ -144,6 +146,7 @@ export async function performConversation() {
 
   const { error: updateError } = await supabase.from('profiles').update({ conversation_count: updatedProfile.conversation_count + 1 }).eq('id', user.id)
   if (updateError) return { success: false, message: '대화 횟수 업데이트에 실패했습니다.' }
+  revalidatePath('/'); // Revalidate the main page to show updated counts
 
   let affectionIncreased = false
   let userCharacter = null; // Declare userCharacter outside the if block
@@ -312,6 +315,7 @@ export async function performBattle(prevState, formData) {
   console.log('Opponent Char for Battle:', JSON.stringify(opponentCharData, null, 2));
 
   await supabase.from('profiles').update({ battle_count: updatedProfile.battle_count + 1 }).eq('id', user.id)
+  revalidatePath('/'); // Revalidate the main page to show updated counts
 
   const userCalculatedStats = calculateInisStats(userChar)
   const opponentCalculatedStats = calculateInisStats(opponentCharData)
