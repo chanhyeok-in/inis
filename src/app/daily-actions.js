@@ -86,12 +86,14 @@ export async function performWalk() {
   if (updateError) return { success: false, message: '산책 횟수 업데이트에 실패했습니다.' }
 
   let affectionIncreased = false
+  let userCharacter = null; // Declare userCharacter outside the if block
   if (Math.random() < 0.10) {
-    const { data: userCharacter, error: userCharError } = await supabase.from('user_characters').select('id, user_id, character_id, created_at, level, attack_stat, defense_stat, health_stat, recovery_stat, affection, name').eq('user_id', user.id).single() // Fetch all character data
+    const { data, error: userCharError } = await supabase.from('user_characters').select('id, user_id, character_id, created_at, level, attack_stat, defense_stat, health_stat, recovery_stat, affection, name').eq('user_id', user.id).single() // Fetch all character data
     if (userCharError) {
       console.error('Error fetching user character for walk:', userCharError);
     }
-    if (userCharacter) {
+    if (data) { // Use 'data' here
+      userCharacter = data; // Assign fetched data to userCharacter
       const updatedCharacter = { ...userCharacter, affection: userCharacter.affection + 1 };
       const payload = {
         user_id: updatedCharacter.user_id,
@@ -144,12 +146,14 @@ export async function performConversation() {
   if (updateError) return { success: false, message: '대화 횟수 업데이트에 실패했습니다.' }
 
   let affectionIncreased = false
+  let userCharacter = null; // Declare userCharacter outside the if block
   if (Math.random() < 0.10) {
-    const { data: userCharacter, error: userCharError } = await supabase.from('user_characters').select('id, user_id, character_id, created_at, level, attack_stat, defense_stat, health_stat, recovery_stat, affection, name').eq('user_id', user.id).single() // Fetch all character data
+    const { data, error: userCharError } = await supabase.from('user_characters').select('id, user_id, character_id, created_at, level, attack_stat, defense_stat, health_stat, recovery_stat, affection, name').eq('user_id', user.id).single() // Fetch all character data
     if (userCharError) {
       console.error('Error fetching user character for conversation:', userCharError);
     }
-    if (userCharacter) {
+    if (data) { // Use 'data' here
+      userCharacter = data; // Assign fetched data to userCharacter
       const updatedCharacter = { ...userCharacter, affection: userCharacter.affection + 1 };
       const payload = {
         user_id: updatedCharacter.user_id,
