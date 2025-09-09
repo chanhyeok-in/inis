@@ -27,7 +27,7 @@ export default function LoginPage() {
             variables: {
               default: {
                 colors: {
-                  inputText: 'white',
+                  // Removed inputText: 'white' to allow default theme handling for dark/light mode
                 },
               },
             },
