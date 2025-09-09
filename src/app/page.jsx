@@ -1,3 +1,5 @@
+'use client'
+
 import { getSupabaseServerClient } from '@/lib/supabase/server-utils'
 import { redirect } from 'next/navigation'
 import AnimatedInis from './AnimatedInis'
@@ -84,7 +86,7 @@ export default async function Home() {
   }
 
   return (
-    <div style={{ padding: '0', margin: '0' }}> {/* Using a div as a wrapper */}
+    <div style={{ padding: '0', margin: '0' }}>
     <div style={{ padding: '20px', textAlign: 'center' }}>
       <div style={{ position: 'absolute', top: '10px', right: '20px' }}>
         <span>{user.email}</span>
@@ -156,6 +158,6 @@ export default async function Home() {
       </div>
     </div>
     {showBattleHistory && <BattleHistoryModal userId={user.id} onClose={() => setShowBattleHistory(false)} />}
-    </div> {/* Closing div tag */}
+    </div>
   )
 }
