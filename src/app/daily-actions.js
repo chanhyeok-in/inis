@@ -258,10 +258,13 @@ export async function performBattle(prevState, formData) {
   const { data: profile, error: profileError } = await supabase.from('profiles').select('battle_count, last_daily_reset').eq('id', user.id).single()
   if (profileError || !profile) return { success: false, message: '프로필을 찾을 수 없습니다.' }
 
-  await checkAndResetDailyCounts(supabase, user.id, profile)
+  await checkAndResetDailyCounts(supabase, user.id, profile) // Always check and reset daily counts
 
-  const { data: updatedProfile } = await supabase.from('profiles').select('battle_count').eq('id', user.id).single()
-  if (updatedProfile.battle_count >= 1) return { success: false, message: '오늘은 이미 전투를 했습니다.' }
+  const { data: updatedProfile } = await supabase.from('profiles').select('battle_count').eq('id', user.id).single() // Always fetch updatedProfile
+
+  if (battleMode === 'random' && updatedProfile.battle_count >= 1) { // Apply limit only for random battles
+    return { success: false, message: '오늘은 이미 전투를 했습니다.' };
+  }
 
   const { data: currentUserProfile, error: currentUserProfileError } = await supabase
     .from('profiles')
@@ -317,8 +320,10 @@ export async function performBattle(prevState, formData) {
   console.log('User Char for Battle:', JSON.stringify(userChar, null, 2));
   console.log('Opponent Char for Battle:', JSON.stringify(opponentCharData, null, 2));
 
-  await supabase.from('profiles').update({ battle_count: updatedProfile.battle_count + 1 }).eq('id', user.id)
-  revalidatePath('/'); // Revalidate the main page to show updated counts
+  if (battleMode === 'random') { // Only update battle count for random battles
+    await supabase.from('profiles').update({ battle_count: updatedProfile.battle_count + 1 }).eq('id', user.id)
+    revalidatePath('/'); // Revalidate the main page to show updated counts
+  }
 
   const userCalculatedStats = calculateInisStats(userChar)
   const opponentCalculatedStats = calculateInisStats(opponentCharData)
@@ -438,22 +443,29 @@ export async function performBattle(prevState, formData) {
     'recovery_stat': '회복력',
   };
 
-  if (didWin) {
-    finalMessage = '전투 승리!';
-    affectionChange = 1;
-    levelChange = 1;
-  } else if (didLose) {
-    finalMessage = '전투 패배!';
-    affectionChange = 1;
-  } else if (didDraw) {
-    finalMessage = '무승부!';
-    levelChange = 1;
-  }
+  if (battleMode === 'random') { // Apply rewards only for random battles
+    if (didWin) {
+      finalMessage = '전투 승리!';
+      affectionChange = 1;
+      levelChange = 1;
+    } else if (didLose) {
+      finalMessage = '전투 패배!';
+      affectionChange = 1;
+    } else if (didDraw) {
+      finalMessage = '무승부!';
+      levelChange = 1;
+    }
 
-  // Handle stat increase for Win/Draw
-  if (didWin || didDraw) {
-    const statsToIncrease = ['attack_stat', 'defense_stat', 'health_stat', 'recovery_stat'];
-    statIncrease = statsToIncrease[Math.floor(Math.random() * statsToIncrease.length)];
+    // Handle stat increase for Win/Draw
+    if (didWin || didDraw) {
+      const statsToIncrease = ['attack_stat', 'defense_stat', 'health_stat', 'recovery_stat'];
+      statIncrease = statsToIncrease[Math.floor(Math.random() * statsToIncrease.length)];
+    }
+  } else { // No rewards for nearby battles
+    finalMessage = didWin ? '전투 승리!' : didLose ? '전투 패배!' : '무승부!';
+    affectionChange = 0;
+    levelChange = 0;
+    statIncrease = null;
   }
 
   // Update user_characters table
