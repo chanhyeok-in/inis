@@ -84,6 +84,7 @@ export default async function Home() {
   }
 
   return (
+    <> {/* Opening fragment tag */}
     <div style={{ padding: '20px', textAlign: 'center' }}>
       <div style={{ position: 'absolute', top: '10px', right: '20px' }}>
         <span>{user.email}</span>
@@ -155,5 +156,7 @@ export default async function Home() {
       </div>
     </div>
     {showBattleHistory && <BattleHistoryModal userId={user.id} onClose={() => setShowBattleHistory(false)} />}
+    </> {/* Closing fragment tag */}
   )
+}
 }
