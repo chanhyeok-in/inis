@@ -53,8 +53,10 @@ export default function BattlePage() {
     const { data: nearbyUsersData, error: nearbyUsersError } = await supabase
       .from('profiles')
       .select('id, username')
-      .eq('latitude', roundedLatitude)
-      .eq('longitude', roundedLongitude)
+      .gte('latitude', roundedLatitude - 0.1)
+      .lt('latitude', roundedLatitude + 0.1)
+      .gte('longitude', roundedLongitude - 0.1)
+      .lt('longitude', roundedLongitude + 0.1)
       .neq('id', user.id);
 
     if (nearbyUsersError) {
