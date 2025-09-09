@@ -159,4 +159,3 @@ export default async function Home() {
     </div> {/* Closing div tag */}
   )
 }
-}
