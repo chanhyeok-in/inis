@@ -56,7 +56,10 @@ export async function checkAndResetDailyCounts(supabase, userId, profile) {
   const now = new Date()
   const lastReset = new Date(profile.last_daily_reset)
 
-  if (now.getUTCDay() !== lastReset.getUTCDay() || now.getUTCMonth() !== lastReset.getUTCMonth() || now.getUTCFullYear() !== lastReset.getUTCFullYear()) {
+  const todayUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0));
+  const lastResetUTC = new Date(Date.UTC(lastReset.getUTCFullYear(), lastReset.getUTCMonth(), lastReset.getUTCDate(), 0, 0, 0, 0));
+
+  if (todayUTC > lastResetUTC) {
     const { error } = await supabase
       .from('profiles')
       .update({ walk_count: 0, conversation_count: 0, battle_count: 0, last_daily_reset: new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1, 0, 0, 0, 0)).toISOString() })
