@@ -16,17 +16,60 @@ export default function BattleHistoryModal({ userId, onClose }) {
       const supabase = createClient();
 
       try {
-        // Fetch battle history where current user is either opponent1 or opponent2
-        const { data, error } = await supabase
+        const { data: battleHistoryData, error: battleHistoryError } = await supabase
           .from('battle_hist')
-          .select('*') // Select all columns
+          .select('id, opponent1_id, opponent2_id, result_type, winner_id, battle_timestamp, battle_type') // Select only direct columns
           .or(`opponent1_id.eq.${userId},opponent2_id.eq.${userId}`) // Filter by user ID
           .order('battle_timestamp', { ascending: false }); // Order by timestamp descending
 
-        if (error) {
-          throw error;
+        if (battleHistoryError) {
+          throw battleHistoryError;
         }
-        setHistory(data || []);
+
+        // Extract unique opponent IDs
+        const opponentIds = new Set();
+        battleHistoryData.forEach(entry => {
+          const opponentId = entry.opponent1_id === userId ? entry.opponent2_id : entry.opponent1_id;
+          if (opponentId) {
+            opponentIds.add(opponentId);
+          }
+        });
+
+        // Fetch opponent profiles and characters in bulk
+        const { data: profilesData, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, username')
+          .in('id', Array.from(opponentIds));
+
+        if (profilesError) {
+          throw profilesError;
+        }
+
+        const { data: userCharactersData, error: userCharactersError } = await supabase
+          .from('user_characters')
+          .select('user_id, name, level')
+          .in('user_id', Array.from(opponentIds));
+
+        if (userCharactersError) {
+          throw userCharactersError;
+        }
+
+        const profilesMap = new Map(profilesData.map(p => [p.id, p]));
+        const userCharactersMap = new Map(userCharactersData.map(uc => [uc.user_id, uc])); // Assuming one character per user for simplicity
+
+        const combinedHistory = battleHistoryData.map(entry => {
+          const opponentId = entry.opponent1_id === userId ? entry.opponent2_id : entry.opponent1_id;
+          const opponentProfile = profilesMap.get(opponentId);
+          const opponentChar = userCharactersMap.get(opponentId);
+
+          return {
+            ...entry,
+            opponent_username: opponentProfile?.username || '알 수 없음',
+            opponent_inis_name: opponentChar?.name || '이름 없음',
+            opponent_inis_level: opponentChar?.level || 0,
+          };
+        });
+        setHistory(combinedHistory || []);
       } catch (err) {
         console.error('Error fetching battle history:', err);
         setError('전투 기록을 불러오는 데 실패했습니다.');
@@ -116,8 +159,10 @@ export default function BattleHistoryModal({ userId, onClose }) {
                 <tr key={entry.id} style={{ borderBottom: '1px solid #eee' }}>
                   <td style={{ padding: '8px' }}>{new Date(entry.battle_timestamp).toLocaleString()}</td>
                   <td style={{ padding: '8px' }}>{entry.battle_type === 'ranked' ? '랭크' : '일반'}</td>
-                  <td style={{ padding: '8px' }}>{getOpponentId(entry)}</td>
-                  <td style={{ padding: '8px', fontWeight: 'bold', color: entry.result_type === 'WIN' && entry.winner_id === userId ? 'green' : entry.result_type === 'LOSE' && entry.winner_id !== userId ? 'red' : 'orange'}>
+                  <td style={{ padding: '8px' }}>
+                    {entry.opponent_username} (Lv.{entry.opponent_inis_level}, {entry.opponent_inis_name})
+                  </td>
+                  <td style={{ padding: '8px', fontWeight: 'bold', color: 'black' }}>
                     {getResultText(entry)}
                   </td>
                 </tr>

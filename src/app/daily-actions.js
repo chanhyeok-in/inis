@@ -510,11 +510,12 @@ export async function performBattle(prevState, formData) {
     }
   }
 
+  const battleTypePrefix = battleMode === 'random' ? 'ranked' : 'normal'; // Define battleTypePrefix at a higher scope
+
   // --- Update Battle Statistics in profiles table ---
   if (profile) { // Ensure profile data is available
     let updatedProfileStats = { ...profile }; // Create a mutable copy
 
-    const battleTypePrefix = battleMode === 'random' ? 'ranked' : 'normal';
     let resultSuffix = '';
 
     if (didWin) {

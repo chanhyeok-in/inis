@@ -12,18 +12,40 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+import { LanguageProvider } from '@/lib/i18n/LanguageProvider'; // Import LanguageProvider
+import { getSupabaseServerClient } from '@/lib/supabase/server-utils'; // Import for initial language fetch
+
 export const metadata = {
   title: "Inis Land",
   description: "Let's Travel Together With Your Inis",
 };
 
-export default function RootLayout({ children,}) {
+export default async function RootLayout({ children,}) {
+  // Fetch initial language from user profile
+  const supabase = await getSupabaseServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  let initialLanguage = 'en'; // Default language
+
+  if (user) {
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('language')
+      .eq('id', user.id)
+      .single();
+
+    if (!error && profile && profile.language) {
+      initialLanguage = profile.language;
+    }
+  }
+
   return (
-    <html lang="en">
+    <html lang={initialLanguage}>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <LanguageProvider initialLanguage={initialLanguage}>
+          {children}
+        </LanguageProvider>
       </body>
     </html>
   );

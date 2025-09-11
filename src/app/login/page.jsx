@@ -3,9 +3,11 @@ import { Auth } from '@supabase/auth-ui-react'
 import { ThemeSupa } from '@supabase/auth-ui-shared'
 import { createClient } from '@/lib/supabase/client'
 import { useEffect } from 'react'
+import { useLanguage } from '@/lib/i18n/LanguageProvider'; // Import useLanguage
 
 export default function LoginPage() {
   const supabase = createClient()
+  const { language, changeLanguage, t } = useLanguage(); // Use the language context
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
@@ -19,6 +21,13 @@ export default function LoginPage() {
 
   return (
     <div style={{ width: '100vw', height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+      <div style={{ position: 'absolute', top: '10px', right: '20px' }}>
+        {/* Language Selector */}
+        <select onChange={(e) => changeLanguage(e.target.value)} value={language} style={{ marginLeft: '10px', padding: '8px 12px', borderRadius: '5px', border: '1px solid #ccc' }}>
+          <option value="en">🇺🇸 {t('common.english')}</option>
+          <option value="ko">🇰🇷 {t('common.korean')}</option>
+        </select>
+      </div>
       <div style={{ width: '400px' }}>
         <Auth
           supabaseClient={supabase}
@@ -33,49 +42,49 @@ export default function LoginPage() {
             },
           }}
           providers={[]}
-          localization={{
+                    localization={{
             variables: {
               sign_in: {
-                email_label: '이메일 주소',
-                password_label: '비밀번호',
-                email_input_placeholder: '이메일 주소를 입력하세요',
-                password_input_placeholder: '비밀번호를 입력하세요',
-                button_label: '로그인',
-                social_provider_text: '{{provider}}로 로그인',
-                link_text: '이미 계정이 있으신가요? 로그인',
+                email_label: t('common.emailAddress'),
+                password_label: t('common.password'),
+                email_input_placeholder: t('common.enterEmail'),
+                password_input_placeholder: t('common.enterPassword'),
+                button_label: t('common.login'),
+                social_provider_text: t('common.loginWithProvider'),
+                link_text: t('common.alreadyHaveAccount'),
               },
               sign_up: {
-                email_label: '이메일 주소',
-                password_label: '비밀번호',
-                email_input_placeholder: '이메일 주소를 입력하세요',
-                password_input_placeholder: '비밀번호를 입력하세요',
-                button_label: '회원가입',
-                social_provider_text: '{{provider}}로 회원가입',
-                link_text: '계정이 없으신가요? 회원가입',
+                email_label: t('common.emailAddress'),
+                password_label: t('common.password'),
+                email_input_placeholder: t('common.enterEmail'),
+                password_input_placeholder: t('common.enterPassword'),
+                button_label: t('common.signup'),
+                social_provider_text: t('common.loginWithProvider'),
+                link_text: t('common.noAccount'),
               },
               forgotten_password: {
-                email_label: '이메일 주소',
-                password_label: '비밀번호',
-                email_input_placeholder: '이메일 주소를 입력하세요',
-                button_label: '비밀번호 재설정',
-                link_text: '비밀번호를 잊으셨나요?',
+                email_label: t('common.emailAddress'),
+                password_label: t('common.password'),
+                email_input_placeholder: t('common.enterEmail'),
+                button_label: t('common.resetPassword'),
+                link_text: t('common.forgotPassword'),
               },
               update_password: {
-                password_label: '새 비밀번호',
-                password_input_placeholder: '새 비밀번호를 입력하세요',
-                button_label: '비밀번호 업데이트',
+                password_label: t('common.newPassword'),
+                password_input_placeholder: t('common.newPassword'),
+                button_label: t('common.updatePassword'),
               },
               magic_link: {
-                email_input_placeholder: '이메일 주소를 입력하세요',
-                button_label: '매직 링크 보내기',
-                link_text: '매직 링크로 로그인',
+                email_input_placeholder: t('common.enterEmail'),
+                button_label: t('common.sendMagicLink'),
+                link_text: t('common.loginWithMagicLink'),
               },
               verify_otp: {
-                email_input_placeholder: '이메일 주소를 입력하세요',
-                phone_input_placeholder: '전화번호를 입력하세요',
-                token_input_placeholder: 'OTP 토큰을 입력하세요',
-                button_label: '확인',
-                link_text: 'OTP로 로그인',
+                email_input_placeholder: t('common.enterEmail'),
+                phone_input_placeholder: t('common.enterPhoneNumber'),
+                token_input_placeholder: t('common.enterOtpToken'),
+                button_label: t('common.verify'),
+                link_text: t('common.loginWithOtp'),
               },
             },
           }}
