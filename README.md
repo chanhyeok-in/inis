@@ -156,3 +156,20 @@ TODO
 GEMINI는 사용자에 허가를 받아 git 에 커밋 및 푸시할 수 있습니다.
 
 이 문서는 Gemini CLI Agent에 의해 커밋 및 푸시되었습니다.
+
+## Gemini CLI Agent가 수행한 추가 작업 요약 (2025-09-11):
+
+1.  **전투 기록 및 UI 다국어 처리 개선:**
+    *   `src/app/components/BattleHistoryModal.jsx`에서 전투 기록 모달의 모든 텍스트를 다국어 처리했습니다.
+    *   "invalid input syntax for type uuid: \"undefined\"" 오류를 해결하기 위해 `BattleHistoryModal`에 `userId` prop이 올바르게 전달되도록 수정했습니다.
+    *   `src/app/battle/BattleScene.jsx`에서 이니스 체력 표시(`체력: 25/25`)를 다국어 처리했습니다.
+    *   `src/app/daily-actions.js`에서 전투 로그 메시지 및 일일 활동(산책, 대화) 관련 메시지를 사용자 언어 설정에 따라 다국어 처리했습니다.
+    *   `en.json` 및 `ko.json` 파일 내의 모든 변수 플레이스홀더(`{var}` 형태)를 `{{var}}` 형태로 통일하여 번역 시스템이 올바르게 작동하도록 수정했습니다.
+
+2.  **전투 시스템 설명 UI 개선:**
+    *   `src/app/battle/client-page.jsx`에서 "Battle System Explanation" 섹션을 기본적으로 숨기고, 사용자가 "설명 보기" 버튼을 클릭해야만 표시되도록 토글 기능을 구현했습니다.
+    *   관련 다국어 키(`common.viewExplanation`, `common.closeExplanation`)를 추가했습니다.
+
+3.  **일일 활동 및 이니스 이름 지정 기능 다국어 처리:**
+    *   `src/app/daily-actions.js` 내 `performWalk`, `performConversation`, `nameInis` 함수에 사용되는 모든 사용자 메시지를 다국어 처리했습니다.
+    *   새로운 다국어 키(`common.walkUpdateFailed`, `common.conversationUpdateFailed`, `common.nameRequired`, `common.countryUpdateFailed`, `common.inis`, `common.affectionIncreasedMessage`)를 `en.json` 및 `ko.json`에 추가했습니다.
