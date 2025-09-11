@@ -100,6 +100,19 @@
     "selectLanguage": "Select Language",
     "english": "English",
     "korean": "Korean",
-    "myInis": "My Inis"
+    "myInis": "My Inis",
+    "backToHome": "Back to Home",
+    "walkDescription": "Build affinity with your Inis by taking a walk. (Once a day)",
+    "walking": "Walking...",
+    "startWalk": "Start Walk",
+    "conversationDescription": "Build affinity with your Inis by talking to them. (3 times a day)",
+    "conversing": "Talking...",
+    "startConversation": "Start Conversation",
+    "randomBattle": "Random Inis Battle",
+    "nearbyBattleButton": "Nearby Inis Battle",
+    "battleNearbyDescription": "Battle with nearby Inis:",
+    "startBattleWithSelected": "Start Battle with Selected Inis",
+    "randomBattleDescription": "Starting a battle with a random Inis.",
+    "startRandomBattle": "Start Random Inis Battle"
   }
 }

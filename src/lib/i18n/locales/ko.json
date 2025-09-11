@@ -100,6 +100,19 @@
     "selectLanguage": "언어 선택",
     "english": "영어",
     "korean": "한국어",
-    "myInis": "나의 이니스"
+    "myInis": "나의 이니스",
+    "backToHome": "홈으로 돌아가기",
+    "walkDescription": "이니스와 함께 산책하며 유대감을 쌓아보세요. (하루 1회)",
+    "walking": "산책 중...",
+    "startWalk": "산책 시작",
+    "conversationDescription": "이니스와 대화하며 유대감을 쌓아보세요. (하루 3회)",
+    "conversing": "대화 중...",
+    "startConversation": "대화 시작",
+    "randomBattle": "랜덤 이니스와 전투",
+    "nearbyBattleButton": "근처 이니스와 전투",
+    "battleNearbyDescription": "근처에 있는 이니스와 전투하세요:",
+    "startBattleWithSelected": "선택한 이니스와 전투 시작",
+    "randomBattleDescription": "랜덤 이니스와 전투를 시작합니다.",
+    "startRandomBattle": "랜덤 이니스와 전투 시작"
   }
 }

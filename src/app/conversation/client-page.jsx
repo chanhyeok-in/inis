@@ -8,8 +8,10 @@ import { createClient } from '@/lib/supabase/client'
 import TalkingInis from './TalkingInis'
 import StyledButton from '../components/StyledButton'
 import LoadingSpinner from '../components/LoadingSpinner'
+import { useLanguage } from '@/lib/i18n/LanguageProvider'
 
 export default function ConversationPage() {
+  const { t } = useLanguage()
   const [state, formAction] = useActionState(performConversation, { success: false, message: '' })
   const { pending } = useFormStatus()
   const formRef = useRef(null)
@@ -57,9 +59,9 @@ export default function ConversationPage() {
 
   return (
     <div style={{ padding: '20px', textAlign: 'center' }}>
-      <Link href="/" style={{ textDecoration: 'underline' }}>&larr; 홈으로 돌아가기</Link>
-      <h1 style={{ marginTop: '20px' }}>대화하기</h1>
-      <p style={{ marginBottom: '20px' }}>이니스와 대화하며 유대감을 쌓아보세요. (하루 3회)</p>
+      <Link href="/" style={{ textDecoration: 'underline' }}>&larr; {t('common.backToHome')}</Link>
+      <h1 style={{ marginTop: '20px' }}>{t('common.conversation')}</h1>
+      <p style={{ marginBottom: '20px' }}>{t('common.conversationDescription')}</p>
 
       <div style={{ margin: '20px auto', width: '150px', height: '150px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px dashed #ccc', borderRadius: '8px' }}>
         {imageUrl ? (
@@ -72,7 +74,7 @@ export default function ConversationPage() {
       <form action={formAction} ref={formRef}>
         {characterId && <input type="hidden" name="characterId" value={characterId} />} {/* Hidden input */}
         <StyledButton type="submit" disabled={pending} style={{ marginTop: '20px' }}>
-          {pending ? '대화 중...' : '대화 시작'}
+          {pending ? t('common.conversing') : t('common.startConversation')}
         </StyledButton>
       </form>
 

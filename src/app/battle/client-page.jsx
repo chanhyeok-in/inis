@@ -8,6 +8,7 @@ import BattleScene from './BattleScene'
 import { createClient } from '@/lib/supabase/client'
 import StyledButton from '../components/StyledButton'
 import LoadingSpinner from '../components/LoadingSpinner'
+import { useLanguage } from '@/lib/i18n/LanguageProvider'
 
 // A new component to handle the pending state within a form
 function SubmitButton({ children, ...props }) {
@@ -20,6 +21,7 @@ function SubmitButton({ children, ...props }) {
 }
 
 export default function BattlePage() {
+  const { t } = useLanguage()
   const [state, formAction] = useActionState(performBattle, { success: false, message: '', battleData: null })
   const [battleMode, setBattleMode] = useState('random'); // 'nearby' or 'random'
   const [fetchedNearbyUsers, setFetchedNearbyUsers] = useState(null);
@@ -77,19 +79,19 @@ export default function BattlePage() {
 
   return (
     <div style={{ padding: '20px', textAlign: 'center' }}>
-      <Link href="/" style={{ textDecoration: 'underline' }}>&larr; 홈으로 돌아가기</Link>
-      <h1 style={{ marginTop: '20px' }}>전투하기</h1>
+      <Link href="/" style={{ textDecoration: 'underline' }}>&larr; {t('common.backToHome')}</Link>
+      <h1 style={{ marginTop: '20px' }}>{t('common.battle')}</h1>
 
       <div style={{ border: '1px solid #eee', padding: '15px', borderRadius: '8px', marginBottom: '20px', backgroundColor: '#f9f9f9', color: '#333' }}>
-        <h4 style={{ marginTop: '0', marginBottom: '10px', color: '#0056b3' }}>전투 시스템 설명</h4>
+        <h4 style={{ marginTop: '0', marginBottom: '10px', color: '#0056b3' }}>{t('common.battleSystemExplanation')}</h4>
         <p style={{ fontSize: '0.9em', lineHeight: '1.4' }}>
-          <strong>스탯 성장:</strong> 랜덤 이니스와의 전투에서 승리하거나 무승부 시, 이니스의 스탯(공격력, 방어력, 체력, 회복력 중 하나)이 무작위로 1 증가합니다.
+          <strong>{t('common.statGrowth')}:</strong> {t('common.statGrowthDesc')}
         </p>
         <p style={{ fontSize: '0.9em', lineHeight: '1.4' }}>
-          <strong>유대감의 중요성:</strong> 이니스와의 유대감이 높을수록 전투 시 이니스가 '공격했다!' 행동을 할 확률이 높아지고, '유저의 말을 듣지 않는다!' 행동을 할 확률이 낮아집니다.
+          <strong>{t('common.affectionImportance')}:</strong> {t('common.affectionImportanceDesc')}
         </p>
         <p style={{ fontSize: '0.9em', lineHeight: '1.4' }}>
-          <strong>근처 이니스 전투:</strong> 근처 이니스와의 전투는 횟수 제한이 없으며, 스탯이나 유대감 보상이 없습니다. 연습 전투로 활용하세요.
+          <strong>{t('common.nearbyBattle')}:</strong> {t('common.nearbyBattleDesc')}
         </p>
       </div>
 
@@ -102,13 +104,13 @@ export default function BattlePage() {
               onClick={() => setBattleMode('random')}
               disabled={battleMode === 'random'}
             >
-              랜덤 이니스와 전투
+              {t('common.randomBattle')}
             </StyledButton>
             <StyledButton
               onClick={() => { setBattleMode('nearby'); setFetchedNearbyUsers(null); }}
               disabled={battleMode === 'nearby'}
             >
-              근처 이니스와 전투
+              {t('common.nearbyBattleButton')}
             </StyledButton>
           </div>
 
@@ -118,7 +120,7 @@ export default function BattlePage() {
             ) : (
               fetchedNearbyUsers && fetchedNearbyUsers.length > 0 ? (
                 <>
-                  <p style={{ marginBottom: '20px' }}>근처에 있는 이니스와 전투하세요:</p>
+                  <p style={{ marginBottom: '20px' }}>{t('common.battleNearbyDescription')}</p>
                   <form action={formAction}>
                     <input type="hidden" name="battleMode" value="nearby" />
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxWidth: '300px', margin: '0 auto' }}>
@@ -141,23 +143,23 @@ export default function BattlePage() {
                       })}
                     </div>
                     <SubmitButton style={{ marginTop: '20px' }}>
-                      선택한 이니스와 전투 시작
+                      {t('common.startBattleWithSelected')}
                     </SubmitButton>
                   </form>
                 </>
               ) : (
-                <p style={{ marginBottom: '20px' }}>근처에 전투할 수 있는 이니스가 없습니다.</p>
+                <p style={{ marginBottom: '20px' }}>{t('common.noOpponentNearby')}</p>
               )
             )
           )}
 
           {battleMode === 'random' && (
             <>
-              <p style={{ marginBottom: '20px' }}>랜덤 이니스와 전투를 시작합니다.</p>
+              <p style={{ marginBottom: '20px' }}>{t('common.randomBattleDescription')}</p>
               <form action={formAction}>
                 <input type="hidden" name="battleMode" value="random" />
                 <SubmitButton style={{ marginTop: '20px' }}>
-                  랜덤 이니스와 전투 시작
+                  {t('common.startRandomBattle')}
                 </SubmitButton>
               </form>
             </>
