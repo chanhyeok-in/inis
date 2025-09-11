@@ -97,7 +97,7 @@ export default function HomePageClient({ user, profile, walkCount, conversationC
             </StyledButton>
           </Link>
         </div>
-        {showBattleHistory && <BattleHistoryModal onClose={() => setShowBattleHistory(false)} />}
+        {showBattleHistory && <BattleHistoryModal userId={user.id} onClose={() => setShowBattleHistory(false)} />}
       </div>
     </div>
   );

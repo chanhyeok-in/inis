@@ -3,6 +3,7 @@
 import { calculateInisStats } from '@/lib/inis/stats.js';
 import { getSupabaseServerClient } from '@/lib/supabase/server-utils.js';
 import { revalidatePath } from 'next/cache';
+import { getTranslation } from '@/lib/i18n';
 
 // Helper to get action based on affection
 function getBattleAction(affection) {
@@ -76,18 +77,21 @@ export async function checkAndResetDailyCounts(supabase, userId, profile) {
 export async function performWalk() {
   const supabase = await getSupabaseServerClient();
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { success: false, message: '로그인되지 않았습니다.' }
+  if (!user) return { success: false, message: t('common.loginRequired') }
 
-  const { data: profile, error: profileError } = await supabase.from('profiles').select('walk_count, last_daily_reset').eq('id', user.id).single()
-  if (profileError || !profile) return { success: false, message: '프로필을 찾을 수 없습니다.' }
+  const { data: profile, error: profileError } = await supabase.from('profiles').select('walk_count, last_daily_reset, language').eq('id', user.id).single()
+  const lang = profile?.language || 'en';
+  const t = (key, vars) => getTranslation(lang, key, vars);
+
+  if (profileError || !profile) return { success: false, message: t('common.profileNotFound') }
 
   await checkAndResetDailyCounts(supabase, user.id, profile)
 
   const { data: updatedProfile } = await supabase.from('profiles').select('walk_count').eq('id', user.id).single()
-  if (updatedProfile.walk_count >= 1) return { success: false, message: '오늘은 이미 산책을 했습니다.' }
+  if (updatedProfile.walk_count >= 1) return { success: false, message: t('common.alreadyWalked') }
 
   const { error: updateError } = await supabase.from('profiles').update({ walk_count: updatedProfile.walk_count + 1 }).eq('id', user.id)
-  if (updateError) return { success: false, message: '산책 횟수 업데이트에 실패했습니다.' }
+  if (updateError) return { success: false, message: t('common.walkUpdateFailed') }
   revalidatePath('/'); // Revalidate the main page to show updated counts
 
   let affectionIncreased = false
@@ -125,11 +129,11 @@ export async function performWalk() {
     }
   }
   
-  const inisName = userCharacter?.name || '이니스';
-  const inisSubject = withKoreanPostposition(inisName, '은/는');
-  let message = `${inisSubject} 시원한 바람을 맞으며 함께 들판을 달렸다.`;
+  const inisName = userCharacter?.name || t('common.inis');
+  const inisSubject = lang === 'ko' ? withKoreanPostposition(inisName, '은/는') : inisName;
+  let message = t('common.walkMessage', { inisSubject });
   if (affectionIncreased) {
-    message += '\n기분이 매우 좋아졌습니다 ! (유대감 +1)';
+    message += '\n' + t('common.affectionIncreasedMessage');
   }
   return { success: true, message: message };
 }
@@ -137,18 +141,21 @@ export async function performWalk() {
 export async function performConversation() {
   const supabase = await getSupabaseServerClient();
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { success: false, message: '로그인되지 않습니다.' }
+  if (!user) return { success: false, message: t('common.loginRequired') }
 
-  const { data: profile, error: profileError } = await supabase.from('profiles').select('conversation_count, last_daily_reset').eq('id', user.id).single()
-  if (profileError || !profile) return { success: false, message: '프로필을 찾을 수 없습니다.' }
+  const { data: profile, error: profileError } = await supabase.from('profiles').select('conversation_count, last_daily_reset, language').eq('id', user.id).single()
+  const lang = profile?.language || 'en';
+  const t = (key, vars) => getTranslation(lang, key, vars);
+
+  if (profileError || !profile) return { success: false, message: t('common.profileNotFound') }
 
   await checkAndResetDailyCounts(supabase, user.id, profile)
 
   const { data: updatedProfile } = await supabase.from('profiles').select('conversation_count').eq('id', user.id).single()
-  if (updatedProfile.conversation_count >= 3) return { success: false, message: '오늘은 이미 대화를 3번 했습니다.' }
+  if (updatedProfile.conversation_count >= 3) return { success: false, message: t('common.alreadyConversed') }
 
   const { error: updateError } = await supabase.from('profiles').update({ conversation_count: updatedProfile.conversation_count + 1 }).eq('id', user.id)
-  if (updateError) return { success: false, message: '대화 횟수 업데이트에 실패했습니다.' }
+  if (updateError) return { success: false, message: t('common.conversationUpdateFailed') }
   revalidatePath('/'); // Revalidate the main page to show updated counts
 
   let affectionIncreased = false
@@ -186,18 +193,18 @@ export async function performConversation() {
     }
   }
 
-  const inisName = userCharacter?.name || '이니스';
-  const inisSubject = withKoreanPostposition(inisName, '은/는');
+  const inisName = userCharacter?.name || t('common.inis');
+  const inisSubject = lang === 'ko' ? withKoreanPostposition(inisName, '은/는') : inisName;
   const everydayMessages = [
-    `${inisSubject} 오늘 날씨가 좋다고 말했다.`,
-    `${inisSubject} 어제 본 드라마 이야기를 해줬다.`,
-    `${inisSubject} 김치찌개는 맛이없다고 말해줬다.`,
-    `${inisSubject} 오늘 저녁으로 뭘 먹을지 고민했다.`,
+    t('common.conversationMessageRandom1', { inisSubject }), 
+    t('common.conversationMessageRandom2', { inisSubject }), 
+    t('common.conversationMessageRandom3', { inisSubject }), 
+    t('common.conversationMessageRandom4', { inisSubject }), 
   ];
 
   let message = '';
   if (affectionIncreased) {
-    message = `${inisSubject} 진심을 이야기 해주었다. (유대감 +1)`;
+    message = t('common.conversationMessageAffection', { inisSubject });
   } else {
     message = everydayMessages[Math.floor(Math.random() * everydayMessages.length)];
   }
@@ -206,27 +213,35 @@ export async function performConversation() {
 
 export async function performBattle(prevState, formData) {
   const supabase = await getSupabaseServerClient();
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { success: false, message: '로그인되지 않습니다.' }
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { success: false, message: '로그인되지 않습니다.' };
+
+  // Fetch profile and language first
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('battle_count, last_daily_reset, ranked_win, ranked_draw, ranked_lose, normal_win, normal_draw, normal_lose, language')
+    .eq('id', user.id)
+    .single();
+
+  const lang = profile?.language || 'en';
+  const t = (key, vars) => getTranslation(lang, key, vars);
+
+  if (profileError || !profile) return { success: false, message: t('common.profileNotFound') };
 
   const battleMode = formData.get('battleMode');
   let opponentId = null;
 
-  console.log(`performBattle called with battleMode: ${battleMode}`); // Added log
-
   if (battleMode === 'nearby') {
     opponentId = formData.get('opponentId');
     if (!opponentId) {
-      return { success: false, message: '전투할 상대를 선택해주세요.' };
+      return { success: false, message: t('common.selectOpponentPrompt') };
     }
   } else if (battleMode === 'random') {
-    const { data: userCharacterLink } = await supabase.from('user_characters').select('character_id, level').eq('user_id', user.id).single()
-    if (!userCharacterLink) return { success: false, message: '사용자 캐릭터를 찾을 수 없습니다.' }
+    const { data: userCharacterLink } = await supabase.from('user_characters').select('character_id, level').eq('user_id', user.id).single();
+    if (!userCharacterLink) return { success: false, message: t('common.userCharacterNotFound') };
 
     const userLevel = userCharacterLink.level;
-    const levelTolerance = 2; // Opponent level within +/- 2 of user's level
-
-    console.log(`User ${user.id} level: ${userLevel}`);
+    const levelTolerance = 2;
 
     const { data: potentialOpponents, error: oppError } = await supabase
       .from('user_characters')
@@ -237,33 +252,25 @@ export async function performBattle(prevState, formData) {
 
     if (oppError) {
       console.error('Error fetching potential opponents:', oppError);
-      return { success: false, message: '랜덤 전투 상대를 찾을 수 없습니다. 나중에 다시 시도해주세요.' };
+      return { success: false, message: t('common.noRandomOpponent') };
     }
 
-    console.log('Potential opponents found:', potentialOpponents);
-
     if (!potentialOpponents || potentialOpponents.length === 0) {
-      return { success: false, message: '랜덤 전투 상대를 찾을 수 없습니다. 나중에 다시 시도해주세요.' };
+      return { success: false, message: t('common.noRandomOpponent') };
     }
 
     const randomOpponent = potentialOpponents[Math.floor(Math.random() * potentialOpponents.length)];
     opponentId = randomOpponent.user_id;
-
-    console.log('Selected random opponent:', randomOpponent);
-
   } else {
-    return { success: false, message: '유효하지 않은 전투 모드입니다.' };
+    return { success: false, message: t('common.invalidBattleMode') };
   }
 
-  const { data: profile, error: profileError } = await supabase.from('profiles').select('battle_count, last_daily_reset, ranked_win, ranked_draw, ranked_lose, normal_win, normal_draw, normal_lose').eq('id', user.id).single()
-  if (profileError || !profile) return { success: false, message: '프로필을 찾을 수 없습니다.' }
+  await checkAndResetDailyCounts(supabase, user.id, profile);
 
-  await checkAndResetDailyCounts(supabase, user.id, profile) // Always check and reset daily counts
+  const { data: updatedProfile } = await supabase.from('profiles').select('battle_count').eq('id', user.id).single();
 
-  const { data: updatedProfile } = await supabase.from('profiles').select('battle_count').eq('id', user.id).single() // Always fetch updatedProfile
-
-  if (battleMode === 'random' && updatedProfile.battle_count >= 1) { // Apply limit only for random battles
-    return { success: false, message: '오늘은 이미 전투를 했습니다.' };
+  if (battleMode === 'random' && updatedProfile.battle_count >= 1) {
+    return { success: false, message: t('common.alreadyBattled') };
   }
 
   const { data: currentUserProfile, error: currentUserProfileError } = await supabase
@@ -273,20 +280,19 @@ export async function performBattle(prevState, formData) {
     .single();
 
   if (currentUserProfileError || !currentUserProfile) {
-    return { success: false, message: '현재 사용자 프로필 정보를 가져올 수 없습니다.' };
+    return { success: false, message: t('common.currentUserProfileError') };
   }
 
-  const { data: userCharacterLink } = await supabase.from('user_characters').select('id, user_id, character_id, created_at, name, level, attack_stat, defense_stat, health_stat, recovery_stat, affection, characters(image_url)').eq('user_id', user.id).single()
-  if (!userCharacterLink) return { success: false, message: '사용자 캐릭터를 찾을 수 없습니다.' }
+  const { data: userCharacterLink } = await supabase.from('user_characters').select('id, user_id, character_id, created_at, name, level, attack_stat, defense_stat, health_stat, recovery_stat, affection, characters(image_url)').eq('user_id', user.id).single();
+  if (!userCharacterLink) return { success: false, message: t('common.userCharacterNotFound') };
 
   const userChar = {
     ...userCharacterLink,
     image_url: userCharacterLink.characters.image_url,
-    username: currentUserProfile.username, // Use username from profiles
+    username: currentUserProfile.username,
   };
   delete userChar.characters;
 
-  // Fetch opponent's character data
   const { data: opponentCharacterLink, error: oppCharLinkError } = await supabase
     .from('user_characters')
     .select('character_id, name, level, attack_stat, defense_stat, health_stat, recovery_stat, affection, characters(image_url)')
@@ -294,7 +300,7 @@ export async function performBattle(prevState, formData) {
     .single();
 
   if (oppCharLinkError || !opponentCharacterLink) {
-    return { success: false, message: '선택한 상대의 캐릭터를 찾을 수 없습니다.' };
+    return { success: false, message: t('common.opponentNotFound') };
   }
 
   const opponentCharData = {
@@ -303,7 +309,6 @@ export async function performBattle(prevState, formData) {
   };
   delete opponentCharData.characters;
 
-  // Fetch opponent's profile data for username
   const { data: opponentProfile, error: opponentProfileError } = await supabase
     .from('profiles')
     .select('username')
@@ -311,54 +316,50 @@ export async function performBattle(prevState, formData) {
     .single();
 
   if (opponentProfileError || !opponentProfile) {
-    console.warn(`상대방 ID에 대한 프로필을 가져올 수 없습니다: ${opponentId}. 사용자 이름을 기본값으로 설정합니다.`);
-    opponentCharData.username = '알 수 없음';
+    console.warn(`Could not fetch profile for opponent ID: ${opponentId}. Defaulting username.`);
+    opponentCharData.username = t('common.unknown');
   } else {
     opponentCharData.username = opponentProfile.username;
   }
 
-  console.log('User Char for Battle:', JSON.stringify(userChar, null, 2));
-  console.log('Opponent Char for Battle:', JSON.stringify(opponentCharData, null, 2));
-
-  if (battleMode === 'random') { // Only update battle count for random battles
-    await supabase.from('profiles').update({ battle_count: updatedProfile.battle_count + 1 }).eq('id', user.id)
-    revalidatePath('/'); // Revalidate the main page to show updated counts
+  if (battleMode === 'random') {
+    await supabase.from('profiles').update({ battle_count: updatedProfile.battle_count + 1 }).eq('id', user.id);
+    revalidatePath('/');
   }
 
-  const userCalculatedStats = calculateInisStats(userChar)
-  const opponentCalculatedStats = calculateInisStats(opponentCharData)
+  const userCalculatedStats = calculateInisStats(userChar);
+  const opponentCalculatedStats = calculateInisStats(opponentCharData);
 
   let userHealth = userCalculatedStats.max_health;
   let opponentHealth = opponentCalculatedStats.max_health;
 
   const battleLog = [];
-  battleLog.push({ type: 'start', message: '전투가 시작되었습니다.', userHealth, opponentHealth });
+  battleLog.push({ type: 'start', message: t('common.battleStart'), userHealth, opponentHealth });
 
   let turn = 1;
   const maxTurns = 20;
 
   while (userHealth > 0 && opponentHealth > 0 && turn <= maxTurns) {
-    // --- User's Turn ---
     const userAction = getBattleAction(userChar.affection);
     let userDamage = 0;
     let userMessage = '';
-    const userName = userChar.name || '이니스';
-    const userSubject = withKoreanPostposition(userName, '은/는');
+    const userName = userChar.name || t('common.noName');
+    const userSubject = lang === 'ko' ? withKoreanPostposition(userName, '은/는') : userName;
 
     if (userAction === 'attack') {
       let calculatedDamage = (6 * (1 + userChar.attack_stat)) - (2 * (1 + opponentCharData.defense_stat));
-      let baseDamage = Math.max(0, calculatedDamage); // Damage cannot be negative
+      let baseDamage = Math.max(0, calculatedDamage);
       const isCritical = Math.random() < 0.25;
       userDamage = isCritical ? baseDamage * 2 : baseDamage;
       opponentHealth -= userDamage;
-      userMessage = `${userSubject} 상대에게 ${userDamage}의 데미지를 입혔다!`;
-      if (isCritical) userMessage += ' (크리티컬!)';
+      userMessage = t('common.attackAction', { inisSubject: userSubject, damage: userDamage });
+      if (isCritical) userMessage += t('common.criticalHit');
     } else if (userAction === 'understand') {
-      userMessage = `${userSubject} 유저의 말을 이해하지 못했다!`;
+      userMessage = t('common.understandAction', { inisSubject: userSubject });
     } else if (userAction === 'space_out') {
-      userMessage = `${userSubject} 멍때리고 있다!`;
+      userMessage = t('common.spaceOutAction', { inisSubject: userSubject });
     } else { // not_listen
-      userMessage = `${userSubject} 유저의 말을 듣지 않는다!`;
+      userMessage = t('common.notListenAction', { inisSubject: userSubject });
     }
 
     battleLog.push({
@@ -374,27 +375,26 @@ export async function performBattle(prevState, formData) {
 
     if (opponentHealth <= 0) break;
 
-    // --- Opponent's Turn ---
     const opponentAction = getBattleAction(opponentCharData.affection);
     let opponentDamage = 0;
     let opponentMessage = '';
-    const opponentName = opponentCharData.name || '이니스';
-    const opponentSubject = withKoreanPostposition(opponentName, '은/는');
+    const opponentName = opponentCharData.name || t('common.noName');
+    const opponentSubject = lang === 'ko' ? withKoreanPostposition(opponentName, '은/는') : opponentName;
 
     if (opponentAction === 'attack') {
       let calculatedDamage = (6 * (1 + opponentCharData.attack_stat)) - (2 * (1 + userChar.defense_stat));
-      let baseDamage = Math.max(0, calculatedDamage); // Damage cannot be negative
+      let baseDamage = Math.max(0, calculatedDamage);
       const isCritical = Math.random() < 0.25;
       opponentDamage = isCritical ? baseDamage * 2 : baseDamage;
       userHealth -= opponentDamage;
-      opponentMessage = `${opponentSubject} 내게 ${opponentDamage}의 데미지를 입혔다!`;
-      if (isCritical) opponentMessage += ' (크리티컬!)';
+      opponentMessage = t('common.attackAction', { inisSubject: opponentSubject, damage: opponentDamage });
+      if (isCritical) opponentMessage += t('common.criticalHit');
     } else if (opponentAction === 'understand') {
-      opponentMessage = `${opponentSubject} 유저의 말을 이해하지 못했다!`;
+      opponentMessage = t('common.understandAction', { inisSubject: opponentSubject });
     } else if (opponentAction === 'space_out') {
-      opponentMessage = `${opponentSubject} 멍때리고 있다!`;
+      opponentMessage = t('common.spaceOutAction', { inisSubject: opponentSubject });
     } else { // not_listen
-      opponentMessage = `${opponentSubject} 유저의 말을 듣지 않는다!`;
+      opponentMessage = t('common.notListenAction', { inisSubject: opponentSubject });
     }
 
     battleLog.push({
@@ -410,18 +410,17 @@ export async function performBattle(prevState, formData) {
 
     if (userHealth <= 0) break;
 
-    // --- Recovery Phase ---
     const userRecovery = userCalculatedStats.recovery_power;
     const opponentRecovery = opponentCalculatedStats.recovery_power;
     if (userRecovery > 0 || opponentRecovery > 0) {
-        userHealth = Math.min(userCalculatedStats.max_health, userHealth + userRecovery);
-        opponentHealth = Math.min(opponentCalculatedStats.max_health, opponentHealth + opponentRecovery);
-        battleLog.push({
-            type: 'recovery',
-            message: `양측 모두 체력을 일부 회복했다. (나: +${userRecovery}, 상대: +${opponentRecovery})`,
-            userHealth,
-            opponentHealth,
-        });
+      userHealth = Math.min(userCalculatedStats.max_health, userHealth + userRecovery);
+      opponentHealth = Math.min(opponentCalculatedStats.max_health, opponentHealth + opponentRecovery);
+      battleLog.push({
+        type: 'recovery',
+        message: t('common.recoveryMessage', { userRecovery, opponentRecovery }),
+        userHealth,
+        opponentHealth,
+      });
     }
 
     turn++;
@@ -434,57 +433,46 @@ export async function performBattle(prevState, formData) {
   let finalMessage = '';
   let affectionChange = 0;
   let levelChange = 0;
-  let statIncrease = null; // To store which stat increased
+  let statIncrease = null;
 
-  const statNamesKorean = {
-    'attack_stat': '공격력',
-    'defense_stat': '방어력',
-    'health_stat': '체력',
-    'recovery_stat': '회복력',
+  const statNames = {
+    'attack_stat': t('common.attack'),
+    'defense_stat': t('common.defense'),
+    'health_stat': t('common.health'),
+    'recovery_stat': t('common.recovery'),
   };
 
-  if (battleMode === 'random') { // Apply rewards only for random battles
+  if (battleMode === 'random') {
     if (didWin) {
-      finalMessage = '전투 승리!';
+      finalMessage = t('common.victory');
       affectionChange = 1;
       levelChange = 1;
     } else if (didLose) {
-      finalMessage = '전투 패배!';
+      finalMessage = t('common.defeat');
       affectionChange = 1;
     } else if (didDraw) {
-      finalMessage = '무승부!';
+      finalMessage = t('common.draw');
       levelChange = 1;
     }
 
-    // Handle stat increase for Win/Draw
     if (didWin || didDraw) {
       const statsToIncrease = ['attack_stat', 'defense_stat', 'health_stat', 'recovery_stat'];
       statIncrease = statsToIncrease[Math.floor(Math.random() * statsToIncrease.length)];
     }
-  } else { // No rewards for nearby battles
-    finalMessage = didWin ? '전투 승리!' : didLose ? '전투 패배!' : '무승부!';
+  } else {
+    finalMessage = didWin ? t('common.victory') : didLose ? t('common.defeat') : t('common.draw');
     affectionChange = 0;
     levelChange = 0;
     statIncrease = null;
   }
 
-  // Update user_characters table
   let updatedUserChar = { ...userChar };
 
-  if (levelChange > 0) {
-    updatedUserChar.level += levelChange;
-  }
+  if (levelChange > 0) updatedUserChar.level += levelChange;
+  if (affectionChange > 0) updatedUserChar.affection += affectionChange;
+  if (statIncrease) updatedUserChar[statIncrease] = (updatedUserChar[statIncrease] ?? 0) + 1;
 
-  if (affectionChange > 0) {
-    updatedUserChar.affection += affectionChange;
-  }
-
-  if (statIncrease) {
-    const currentStatValue = updatedUserChar[statIncrease] ?? 0;
-    updatedUserChar[statIncrease] = currentStatValue + 1;
-  }
-
-  if (levelChange > 0 || affectionChange > 0 || statIncrease) { // Check if any changes were made
+  if (levelChange > 0 || affectionChange > 0 || statIncrease) {
     const payloadToUpdate = {
       user_id: updatedUserChar.user_id,
       character_id: updatedUserChar.character_id,
@@ -498,7 +486,6 @@ export async function performBattle(prevState, formData) {
       name: updatedUserChar.name,
     };
 
-    console.log('Update Payload:', JSON.stringify(payloadToUpdate, null, 2));
     const { error: updateCharError } = await supabase
       .from('user_characters')
       .update(payloadToUpdate)
@@ -506,26 +493,15 @@ export async function performBattle(prevState, formData) {
 
     if (updateCharError) {
       console.error('Error updating user character stats:', updateCharError);
-      finalMessage += ' (스탯 업데이트 실패)';
+      finalMessage += t('common.statUpdateFailed');
     }
   }
 
-  const battleTypePrefix = battleMode === 'random' ? 'ranked' : 'normal'; // Define battleTypePrefix at a higher scope
+  const battleTypePrefix = battleMode === 'random' ? 'ranked' : 'normal';
 
-  // --- Update Battle Statistics in profiles table ---
-  if (profile) { // Ensure profile data is available
-    let updatedProfileStats = { ...profile }; // Create a mutable copy
-
-    let resultSuffix = '';
-
-    if (didWin) {
-      resultSuffix = 'win';
-    } else if (didDraw) {
-      resultSuffix = 'draw';
-    } else if (didLose) {
-      resultSuffix = 'lose';
-    }
-
+  if (profile) {
+    let updatedProfileStats = { ...profile };
+    let resultSuffix = didWin ? 'win' : didDraw ? 'draw' : 'lose';
     const statToIncrement = `${battleTypePrefix}_${resultSuffix}`;
     updatedProfileStats[statToIncrement] = (updatedProfileStats[statToIncrement] || 0) + 1;
 
@@ -546,20 +522,8 @@ export async function performBattle(prevState, formData) {
     }
   }
 
-  // --- Record Battle History in battle_hist table ---
-  let resultType = '';
-  let winnerId = null;
-
-  if (didWin) {
-    resultType = 'WIN';
-    winnerId = user.id;
-  } else if (didDraw) {
-    resultType = 'DRAW';
-    winnerId = null;
-  } else if (didLose) {
-    resultType = 'LOSE';
-    winnerId = opponentId; // Opponent wins, so opponentId is the winner
-  }
+  let resultType = didWin ? 'WIN' : didDraw ? 'DRAW' : 'LOSE';
+  let winnerId = didWin ? user.id : didLose ? opponentId : null;
 
   const { error: insertBattleHistError } = await supabase
     .from('battle_hist')
@@ -570,7 +534,7 @@ export async function performBattle(prevState, formData) {
         result_type: resultType,
         winner_id: winnerId,
         battle_timestamp: new Date().toISOString(),
-        battle_type: battleTypePrefix, // Add battle_type
+        battle_type: battleTypePrefix,
       },
     ]);
 
@@ -578,16 +542,23 @@ export async function performBattle(prevState, formData) {
     console.error('Error inserting battle history:', insertBattleHistError);
   }
 
-  // Add specific messages for stat/affection changes
-  if (didWin) {
-    finalMessage += affectionChange > 0 ? ' 유대감이 1 증가했습니다!' : '';
-    finalMessage += levelChange > 0 ? ' 레벨이 1 올랐습니다!' : '';
-    finalMessage += statIncrease ? ` ${withKoreanPostposition(statNamesKorean[statIncrease], '이/가')} 1 증가했습니다!` : '';
-  } else if (didLose) {
-    finalMessage += affectionChange > 0 ? ' 유대감이 1 증가했습니다!' : '';
-  } else if (didDraw) {
-    finalMessage += levelChange > 0 ? ' 레벨이 1 올랐습니다!' : '';
-    finalMessage += statIncrease ? ` ${withKoreanPostposition(statNamesKorean[statIncrease], '이/가')} 1 증가했습니다!` : '';
+  if (battleMode === 'random') { // Only add detailed messages for random battles
+    if (didWin) {
+      if (affectionChange > 0) finalMessage += ' ' + t('common.affectionIncreased');
+      if (levelChange > 0) finalMessage += ' ' + t('common.levelIncreased');
+      if (statIncrease) {
+        const statName = lang === 'ko' ? withKoreanPostposition(statNames[statIncrease], '이/가') : statNames[statIncrease];
+        finalMessage += ' ' + t('common.statIncreased', { statName });
+      }
+    } else if (didLose) {
+      if (affectionChange > 0) finalMessage += ' ' + t('common.affectionIncreased');
+    } else if (didDraw) {
+      if (levelChange > 0) finalMessage += ' ' + t('common.levelIncreased');
+      if (statIncrease) {
+        const statName = lang === 'ko' ? withKoreanPostposition(statNames[statIncrease], '이/가') : statNames[statIncrease];
+        finalMessage += ' ' + t('common.statIncreased', { statName });
+      }
+    }
   }
 
   battleLog.push({ type: 'end', message: finalMessage, userHealth, opponentHealth });
@@ -611,8 +582,18 @@ export async function nameInis(prevState, formData) {
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
-    return { success: false, message: '로그인되지 않았습니다.' };
+    return { success: false, message: t('common.loginRequired') };
   }
+
+  // Fetch profile to get language
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('language')
+    .eq('id', user.id)
+    .single();
+
+  const lang = profile?.language || 'en';
+  const t = (key, vars) => getTranslation(lang, key, vars);
 
   const inisId = formData.get('inisId');
   const inisName = formData.get('inisName');
@@ -621,15 +602,15 @@ export async function nameInis(prevState, formData) {
   const numericInisId = parseInt(inisId, 10);
 
   if (!inisName || inisName.trim().length === 0) {
-    return { success: false, message: '이름을 입력해주세요.' };
+    return { success: false, message: t('common.nameRequired') };
   }
 
   if (inisName.length > 10) {
-    return { success: false, message: '이름은 10자 이내로 입력해주세요.' };
+    return { success: false, message: t('common.nameTooLong') };
   }
 
   if (!numericInisId) {
-    return { success: false, message: '잘못된 요청입니다.' };
+    return { success: false, message: t('common.invalidRequest') };
   }
 
   // Verify the user owns this Inis
@@ -642,7 +623,7 @@ export async function nameInis(prevState, formData) {
 
   if (ownerError || !character) {
     console.error('Ownership verification failed:', { ownerError, hasCharacter: !!character });
-    return { success: false, message: '이름을 변경할 수 있는 권한이 없습니다.' };
+    return { success: false, message: t('common.ownershipFailed') };
   }
 
   // Update Inis name
@@ -653,7 +634,7 @@ export async function nameInis(prevState, formData) {
 
   if (nameError) {
     console.error('Error naming Inis:', nameError);
-    return { success: false, message: '이름을 저장하는 데 실패했습니다.' };
+    return { success: false, message: t('common.saveFailed') };
   }
 
   // If country is provided, update profile
@@ -667,10 +648,10 @@ export async function nameInis(prevState, formData) {
       console.error('Error updating country:', countryError);
       // Even if country update fails, the name was successful.
       // You might want to return a specific message for this case.
-      return { success: true, message: '이름은 저장되었지만, 국가 정보 업데이트에 실패했습니다.' };
+      return { success: true, message: t('common.countryUpdateFailed') };
     }
   }
 
   revalidatePath('/');
-  return { success: true, message: '성공적으로 저장했습니다!' };
+  return { success: true, message: t('common.saveSuccess') };
 }

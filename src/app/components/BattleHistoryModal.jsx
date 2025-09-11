@@ -1,10 +1,12 @@
-'use client'
+'use client';
 
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import LoadingSpinner from './LoadingSpinner';
+import { useLanguage } from '@/lib/i18n/LanguageProvider'; // Import useLanguage
 
 export default function BattleHistoryModal({ userId, onClose }) {
+  const { t } = useLanguage(); // Get translation function
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -18,15 +20,14 @@ export default function BattleHistoryModal({ userId, onClose }) {
       try {
         const { data: battleHistoryData, error: battleHistoryError } = await supabase
           .from('battle_hist')
-          .select('id, opponent1_id, opponent2_id, result_type, winner_id, battle_timestamp, battle_type') // Select only direct columns
-          .or(`opponent1_id.eq.${userId},opponent2_id.eq.${userId}`) // Filter by user ID
-          .order('battle_timestamp', { ascending: false }); // Order by timestamp descending
+          .select('id, opponent1_id, opponent2_id, result_type, winner_id, battle_timestamp, battle_type')
+          .or(`opponent1_id.eq.${userId},opponent2_id.eq.${userId}`)
+          .order('battle_timestamp', { ascending: false });
 
         if (battleHistoryError) {
           throw battleHistoryError;
         }
 
-        // Extract unique opponent IDs
         const opponentIds = new Set();
         battleHistoryData.forEach(entry => {
           const opponentId = entry.opponent1_id === userId ? entry.opponent2_id : entry.opponent1_id;
@@ -35,7 +36,6 @@ export default function BattleHistoryModal({ userId, onClose }) {
           }
         });
 
-        // Fetch opponent profiles and characters in bulk
         const { data: profilesData, error: profilesError } = await supabase
           .from('profiles')
           .select('id, username')
@@ -55,7 +55,7 @@ export default function BattleHistoryModal({ userId, onClose }) {
         }
 
         const profilesMap = new Map(profilesData.map(p => [p.id, p]));
-        const userCharactersMap = new Map(userCharactersData.map(uc => [uc.user_id, uc])); // Assuming one character per user for simplicity
+        const userCharactersMap = new Map(userCharactersData.map(uc => [uc.user_id, uc]));
 
         const combinedHistory = battleHistoryData.map(entry => {
           const opponentId = entry.opponent1_id === userId ? entry.opponent2_id : entry.opponent1_id;
@@ -64,36 +64,34 @@ export default function BattleHistoryModal({ userId, onClose }) {
 
           return {
             ...entry,
-            opponent_username: opponentProfile?.username || '알 수 없음',
-            opponent_inis_name: opponentChar?.name || '이름 없음',
+            opponent_username: opponentProfile?.username || t('common.unknown'),
+            opponent_inis_name: opponentChar?.name || t('common.noName'),
             opponent_inis_level: opponentChar?.level || 0,
           };
         });
         setHistory(combinedHistory || []);
       } catch (err) {
         console.error('Error fetching battle history:', err);
-        setError('전투 기록을 불러오는 데 실패했습니다.');
+        setError(t('common.battleHistoryError'));
       } finally {
         setLoading(false);
       }
     }
 
-    fetchBattleHistory();
-  }, [userId]);
+    if (userId) {
+      fetchBattleHistory();
+    }
+  }, [userId, t]);
 
   const getResultText = (entry) => {
     if (entry.result_type === 'WIN') {
-      return entry.winner_id === userId ? '승리' : '패배';
+      return entry.winner_id === userId ? t('common.win') : t('common.lose');
     } else if (entry.result_type === 'LOSE') {
-      return entry.winner_id === userId ? '승리' : '패배'; // Should not happen if winner_id is correctly set
+      return entry.winner_id === userId ? t('common.win') : t('common.lose');
     } else if (entry.result_type === 'DRAW') {
-      return '무승부';
+      return t('common.draw');
     }
-    return '알 수 없음';
-  };
-
-  const getOpponentId = (entry) => {
-    return entry.opponent1_id === userId ? entry.opponent2_id : entry.opponent1_id;
+    return t('common.unknown');
   };
 
   return (
@@ -118,7 +116,7 @@ export default function BattleHistoryModal({ userId, onClose }) {
         maxHeight: '80%',
         overflowY: 'auto',
         position: 'relative',
-        color: 'black', // Ensure text is visible on white background
+        color: 'black',
       }}>
         <button
           onClick={onClose}
@@ -135,30 +133,30 @@ export default function BattleHistoryModal({ userId, onClose }) {
         >
           &times;
         </button>
-        <h2 style={{ marginTop: '0', marginBottom: '20px', textAlign: 'center' }}>전투 기록</h2>
+        <h2 style={{ marginTop: '0', marginBottom: '20px', textAlign: 'center' }}>{t('common.battleHistory')}</h2>
 
         {loading && <LoadingSpinner />}
         {error && <p style={{ color: 'red', textAlign: 'center' }}>{error}</p>}
 
         {!loading && !error && history.length === 0 && (
-          <p style={{ textAlign: 'center' }}>전투 기록이 없습니다.</p>
+          <p style={{ textAlign: 'center' }}>{t('common.noBattleHistory')}</p>
         )}
 
         {!loading && !error && history.length > 0 && (
           <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid #ddd' }}>
-                <th style={{ padding: '8px', textAlign: 'left' }}>날짜</th>
-                <th style={{ padding: '8px', textAlign: 'left' }}>전투 유형</th>
-                <th style={{ padding: '8px', textAlign: 'left' }}>상대방 ID</th>
-                <th style={{ padding: '8px', textAlign: 'left' }}>결과</th>
+                <th style={{ padding: '8px', textAlign: 'left' }}>{t('common.date')}</th>
+                <th style={{ padding: '8px', textAlign: 'left' }}>{t('common.battleType')}</th>
+                <th style={{ padding: '8px', textAlign: 'left' }}>{t('common.opponent')}</th>
+                <th style={{ padding: '8px', textAlign: 'left' }}>{t('common.result')}</th>
               </tr>
             </thead>
             <tbody>
               {history.map((entry) => (
                 <tr key={entry.id} style={{ borderBottom: '1px solid #eee' }}>
                   <td style={{ padding: '8px' }}>{new Date(entry.battle_timestamp).toLocaleString()}</td>
-                  <td style={{ padding: '8px' }}>{entry.battle_type === 'ranked' ? '랭크' : '일반'}</td>
+                  <td style={{ padding: '8px' }}>{entry.battle_type === 'ranked' ? t('common.ranked') : t('common.normal')}</td>
                   <td style={{ padding: '8px' }}>
                     {entry.opponent_username} (Lv.{entry.opponent_inis_level}, {entry.opponent_inis_name})
                   </td>

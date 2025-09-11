@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { default as NextImage } from 'next/image'
 import StyledButton from '../components/StyledButton'
+import { useLanguage } from '@/lib/i18n/LanguageProvider';
 
 // Helper for action icons
 function ActionIcon({ action }) {
@@ -25,19 +26,21 @@ function ActionIcon({ action }) {
 
 // Helper for character display
 function CharacterDisplay({ character, health, maxHealth, isUser }) {
+  const { t } = useLanguage();
   const borderColor = isUser ? 'blue' : 'red';
   return (
     <div style={{ textAlign: 'center' }}>
-      <h2 style={{ fontSize: '1.1em', fontWeight: 'bold', marginBottom: '4px' }}>{character.name || '이름없음'}</h2>
+      <h2 style={{ fontSize: '1.1em', fontWeight: 'bold', marginBottom: '4px' }}>{character.name || t('common.noName')}</h2>
       <p style={{ fontSize: '0.9em', color: '#ededed', margin: '0' }}>Lv. {character.level}</p>
       <p style={{ fontSize: '0.8em', color: '#bbb', margin: '0 0 8px 0' }}>({character.username})</p>
       <NextImage src={character.image_url} alt={character.name} width={150} height={150} style={{ border: `3px solid ${borderColor}`, borderRadius: '8px' }} />
-      <p style={{ color: '#ededed', fontWeight: 'bold', marginTop: '8px' }}>체력: {health} / {maxHealth}</p>
+      <p style={{ color: '#ededed', fontWeight: 'bold', marginTop: '8px' }}>{t('common.healthStatus', { currentHealth: health, maxHealth: maxHealth })}</p>
     </div>
   )
 }
 
 export default function BattleScene({ battleData }) {
+  const { t } = useLanguage();
   const { userChar, opponentChar, battleLog, didWin, affectionIncreased } = battleData
   const [logIndex, setLogIndex] = useState(0)
   const [animation, setAnimation] = useState({ active: false, type: null, actor: null })
@@ -141,8 +144,8 @@ export default function BattleScene({ battleData }) {
         null
       ) : (
         <div style={{ marginTop: '20px', fontWeight: 'bold', color: didWin ? 'green' : 'red', textAlign: 'center' }}>
-          <h2>{didWin ? '승리!' : '패배!'}</h2>
-          {affectionIncreased && <p>유대감이 1 증가했습니다!</p>}
+          <h2>{didWin ? t('common.victory') : t('common.defeat')}</h2>
+          {affectionIncreased && <p>{t('common.affectionIncreased')}</p>}
         </div>
       )}
     </div>

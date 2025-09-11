@@ -26,6 +26,7 @@ export default function BattlePage() {
   const [battleMode, setBattleMode] = useState('random'); // 'nearby' or 'random'
   const [fetchedNearbyUsers, setFetchedNearbyUsers] = useState(null);
   const [locationLoading, setLocationLoading] = useState(false);
+  const [showExplanation, setShowExplanation] = useState(false); // State for explanation visibility
 
   const fetchNearbyUsers = async () => {
     setLocationLoading(true);
@@ -82,18 +83,27 @@ export default function BattlePage() {
       <Link href="/" style={{ textDecoration: 'underline' }}>&larr; {t('common.backToHome')}</Link>
       <h1 style={{ marginTop: '20px' }}>{t('common.battle')}</h1>
 
-      <div style={{ border: '1px solid #eee', padding: '15px', borderRadius: '8px', marginBottom: '20px', backgroundColor: '#f9f9f9', color: '#333' }}>
-        <h4 style={{ marginTop: '0', marginBottom: '10px', color: '#0056b3' }}>{t('common.battleSystemExplanation')}</h4>
-        <p style={{ fontSize: '0.9em', lineHeight: '1.4' }}>
-          <strong>{t('common.statGrowth')}:</strong> {t('common.statGrowthDesc')}
-        </p>
-        <p style={{ fontSize: '0.9em', lineHeight: '1.4' }}>
-          <strong>{t('common.affectionImportance')}:</strong> {t('common.affectionImportanceDesc')}
-        </p>
-        <p style={{ fontSize: '0.9em', lineHeight: '1.4' }}>
-          <strong>{t('common.nearbyBattle')}:</strong> {t('common.nearbyBattleDesc')}
-        </p>
-      </div>
+      <StyledButton
+        onClick={() => setShowExplanation(!showExplanation)}
+        style={{ marginBottom: '20px' }}
+      >
+        {showExplanation ? t('common.closeExplanation') : t('common.viewExplanation')}
+      </StyledButton>
+
+      {showExplanation && (
+        <div style={{ border: '1px solid #eee', padding: '15px', borderRadius: '8px', marginBottom: '20px', backgroundColor: '#f9f9f9', color: '#333' }}>
+          <h4 style={{ marginTop: '0', marginBottom: '10px', color: '#0056b3' }}>{t('common.battleSystemExplanation')}</h4>
+          <p style={{ fontSize: '0.9em', lineHeight: '1.4' }}>
+            <strong>{t('common.statGrowth')}:</strong> {t('common.statGrowthDesc')}
+          </p>
+          <p style={{ fontSize: '0.9em', lineHeight: '1.4' }}>
+            <strong>{t('common.affectionImportance')}:</strong> {t('common.affectionImportanceDesc')}
+          </p>
+          <p style={{ fontSize: '0.9em', lineHeight: '1.4' }}>
+            <strong>{t('common.nearbyBattle')}:</strong> {t('common.nearbyBattleDesc')}
+          </p>
+        </div>
+      )}
 
       {state.battleData ? (
         <BattleScene battleData={state.battleData} />
