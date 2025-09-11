@@ -7,10 +7,19 @@ import StyledButton from './components/StyledButton'; // Import StyledButton
 import { useState } from 'react'; // Import useState
 import BattleHistoryModal from './components/BattleHistoryModal'; // Import BattleHistoryModal
 import { useLanguage } from '@/lib/i18n/LanguageProvider';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
-export default function HomePageClient({ user, profile, walkCount, conversationCount, battleCount, maxWalk, maxConversation, maxBattle, userCharacters }) {
+export default function HomePageClient({ user, profile, walkCount, conversationCount, battleCount, maxWalk, maxConversation, maxBattle, userCharacters, shouldRefresh }) {
   const { t, language, changeLanguage } = useLanguage();
   const [showBattleHistory, setShowBattleHistory] = useState(false); // State for showing battle history modal
+  const router = useRouter();
+
+  useEffect(() => {
+    if (shouldRefresh) {
+      router.refresh();
+    }
+  }, [shouldRefresh, router]);
 
   return (
     <div style={{ padding: '0', margin: '0' }}> {/* Using a div as a wrapper */}

@@ -24,8 +24,12 @@ export default async function HomePageWrapper() {
     console.error('Error fetching profile counts:', profileError);
   }
 
+  let shouldRefresh = false;
   if (profile) {
-    await checkAndResetDailyCounts(supabase, user.id, profile);
+    const resetResult = await checkAndResetDailyCounts(supabase, user.id, profile);
+    if (resetResult && resetResult.success) {
+      shouldRefresh = true;
+    }
 
     const { data: updatedProfile, error: updatedProfileError } = await supabase
       .from('profiles')
@@ -86,6 +90,7 @@ export default async function HomePageWrapper() {
         maxConversation={maxConversation}
         maxBattle={maxBattle}
         userCharacters={userCharacters}
+        shouldRefresh={shouldRefresh}
       />
     </LanguageProvider>
   );
