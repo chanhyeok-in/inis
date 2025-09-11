@@ -616,6 +616,7 @@ export async function nameInis(prevState, formData) {
 
   const inisId = formData.get('inisId');
   const inisName = formData.get('inisName');
+  const country = formData.get('country'); // Get country from form data
 
   const numericInisId = parseInt(inisId, 10);
 
@@ -644,15 +645,32 @@ export async function nameInis(prevState, formData) {
     return { success: false, message: '이름을 변경할 수 있는 권한이 없습니다.' };
   }
 
-  const { error } = await supabase
+  // Update Inis name
+  const { error: nameError } = await supabase
     .from('user_characters')
     .update({ name: inisName.trim() })
     .eq('id', numericInisId);
 
-  if (error) {
-    console.error('Error naming Inis:', error);
+  if (nameError) {
+    console.error('Error naming Inis:', nameError);
     return { success: false, message: '이름을 저장하는 데 실패했습니다.' };
   }
 
-  return { success: true, message: '성공적으로 이름을 저장했습니다!' };
+  // If country is provided, update profile
+  if (country) {
+    const { error: countryError } = await supabase
+      .from('profiles')
+      .update({ country: country })
+      .eq('id', user.id);
+
+    if (countryError) {
+      console.error('Error updating country:', countryError);
+      // Even if country update fails, the name was successful.
+      // You might want to return a specific message for this case.
+      return { success: true, message: '이름은 저장되었지만, 국가 정보 업데이트에 실패했습니다.' };
+    }
+  }
+
+  revalidatePath('/');
+  return { success: true, message: '성공적으로 저장했습니다!' };
 }

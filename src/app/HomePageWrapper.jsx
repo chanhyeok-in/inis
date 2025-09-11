@@ -16,7 +16,7 @@ export default async function HomePageWrapper() {
   // Fetch profile counts
   let { data: profile, error: profileError } = await supabase
     .from('profiles')
-    .select('walk_count, conversation_count, battle_count, last_daily_reset, ranked_win, ranked_draw, ranked_lose, normal_win, normal_draw, normal_lose, language')
+    .select('walk_count, conversation_count, battle_count, last_daily_reset, ranked_win, ranked_draw, ranked_lose, normal_win, normal_draw, normal_lose, language, country')
     .eq('id', user.id)
     .single();
 
@@ -33,7 +33,7 @@ export default async function HomePageWrapper() {
 
     const { data: updatedProfile, error: updatedProfileError } = await supabase
       .from('profiles')
-      .select('walk_count, conversation_count, battle_count, last_daily_reset, ranked_win, ranked_draw, ranked_lose, normal_win, normal_draw, normal_lose, language')
+      .select('walk_count, conversation_count, battle_count, last_daily_reset, ranked_win, ranked_draw, ranked_lose, normal_win, normal_draw, normal_lose, language, country')
       .eq('id', user.id)
       .single();
 

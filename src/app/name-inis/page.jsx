@@ -11,6 +11,7 @@ import LoadingSpinner from '../components/LoadingSpinner'
 export default function NameInisPage() {
   const router = useRouter()
   const [inisToName, setInisToName] = useState(null)
+  const [profile, setProfile] = useState(null); // Add state for profile
   const [loading, setLoading] = useState(true)
   const [state, formAction] = useActionState(nameInis, { success: false, message: '' })
 
@@ -22,6 +23,19 @@ export default function NameInisPage() {
       if (!user) {
         router.push('/login')
         return
+      }
+
+      // Fetch profile data
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('country')
+        .eq('id', user.id)
+        .single();
+
+      if (profileError) {
+        console.error('Error fetching profile:', profileError);
+      } else {
+        setProfile(profileData);
       }
 
       const { data: userCharacters, error } = await supabase
@@ -90,6 +104,21 @@ export default function NameInisPage() {
           placeholder="이니스 이름"
           style={{ padding: '10px', borderRadius: '5px', border: '1px solid #ccc' }}
         />
+
+        {profile && !profile.country && (
+          <select
+            name="country"
+            required
+            style={{ padding: '10px', borderRadius: '5px', border: '1px solid #ccc' }}
+          >
+            <option value="">국가 선택</option>
+            <option value="KR">대한민국</option>
+            <option value="US">미국</option>
+            <option value="JP">일본</option>
+            <option value="CN">중국</option>
+          </select>
+        )}
+
         <StyledButton type="submit">
           이름 저장
         </StyledButton>

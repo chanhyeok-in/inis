@@ -25,7 +25,7 @@ export default function HomePageClient({ user, profile, walkCount, conversationC
     <div style={{ padding: '0', margin: '0' }}> {/* Using a div as a wrapper */}
       <div style={{ padding: '20px', textAlign: 'center' }}>
         <div style={{ position: 'absolute', top: '10px', right: '20px' }}>
-          <span>{user.email}</span>
+          <span>{user.email}{profile?.country && ` (${profile.country})`}</span>
           <button onClick={() => setShowBattleHistory(true)} style={{ marginLeft: '10px', padding: '8px 12px', border: 'none', borderRadius: '5px', background: '#007bff', color: 'white', cursor: 'pointer' }}>
             {t('common.viewBattleHistory')}
           </button>
