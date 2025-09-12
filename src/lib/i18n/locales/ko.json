@@ -59,16 +59,7 @@
     "understandAction": "{{inisSubject}} 유저의 말을 이해하지 못했다!",
     "spaceOutAction": "{{inisSubject}} 멍때리고 있다!",
     "notListenAction": "{{inisSubject}} 유저의 말을 듣지 않는다!",
-    "conversationMessageAffection": "{{inisSubject}} 진심을 이야기 해주었다. (유대감 +1)",
-    "conversationMessageRandom1": "{{inisSubject}} 오늘 날씨가 좋다고 말했다.",
-    "conversationMessageRandom2": "{{inisSubject}} 어제 본 드라마 이야기를 해줬다.",
-    "conversationMessageRandom3": "{{inisSubject}} 김치찌개는 맛이없다고 말해줬다.",
-    "conversationMessageRandom4": "{{inisSubject}} 오늘 저녁으로 뭘 먹을지 고민했다.",
-    "attackAction": "{{inisSubject}} 상대에게 {{damage}}의 데미지를 입혔다!",
     "criticalHit": " (크리티컬!)",
-    "understandAction": "{{inisSubject}} 유저의 말을 이해하지 못했다!",
-    "spaceOutAction": "{{inisSubject}} 멍때리고 있다!",
-    "notListenAction": "{{inisSubject}} 유저의 말을 듣지 않는다!",
     "battleHistory": "전투 기록",
     "battleHistoryError": "전투 기록을 불러오는 데 실패했습니다.",
     "date": "날짜",
@@ -134,6 +125,9 @@
     "nameRequired": "이름을 입력해주세요.",
     "countryUpdateFailed": "이름은 저장되었지만, 국가 정보 업데이트에 실패했습니다.",
     "inis": "이니스",
-    "affectionIncreasedMessage": "기분이 매우 좋아졌습니다 ! (유대감 +1)"
+    "affectionIncreasedMessage": "기분이 매우 좋아졌습니다 ! (유대감 +1)",
+    "linkWebAuth": "WebAuth 연동",
+    "linking": "연동 중...",
+    "linkedAccount": "연동된 계정"
   }
 }

@@ -67,9 +67,10 @@ export async function checkAndResetDailyCounts(supabase, userId, profile) {
       .eq('id', userId)
     if (error) {
       console.error('Error resetting daily counts:', error)
-      return false
+      return { success: false };
     }
-    return true
+    revalidatePath('/'); // Revalidate the home page
+    return { success: true };
   }
   return false
 }

@@ -125,6 +125,9 @@
     "nameRequired": "Name is required.",
     "countryUpdateFailed": "Name saved successfully, but failed to update country information.",
     "inis": "Inis",
-    "affectionIncreasedMessage": "Feeling much better! (Affection +1)"
+    "affectionIncreasedMessage": "Feeling much better! (Affection +1)",
+    "linkWebAuth": "Login with WebAuth",
+    "linking": "Linking...",
+    "linkedAccount": "Linked Account"
   }
 }

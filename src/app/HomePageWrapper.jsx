@@ -1,7 +1,7 @@
 import { getSupabaseServerClient } from '@/lib/supabase/server-utils';
 import { redirect } from 'next/navigation';
-import HomePageClient from './HomePageClient'; // This will be the renamed page.jsx
-import { checkAndResetDailyCounts } from './daily-actions'; // Import checkAndResetDailyCounts
+import HomePageClient from './HomePageClient';
+import { checkAndResetDailyCounts } from './daily-actions';
 import { LanguageProvider } from '@/lib/i18n/LanguageProvider';
 
 export default async function HomePageWrapper() {
@@ -13,27 +13,26 @@ export default async function HomePageWrapper() {
     redirect('/login');
   }
 
-  // Fetch profile counts
+  // Fetch profile, including proton_actor
   let { data: profile, error: profileError } = await supabase
     .from('profiles')
-    .select('walk_count, conversation_count, battle_count, last_daily_reset, ranked_win, ranked_draw, ranked_lose, normal_win, normal_draw, normal_lose, language, country')
+    .select('walk_count, conversation_count, battle_count, last_daily_reset, ranked_win, ranked_draw, ranked_lose, normal_win, normal_draw, normal_lose, language, country, proton_actor')
     .eq('id', user.id)
     .single();
 
   if (profileError) {
-    console.error('Error fetching profile counts:', profileError);
+    console.error('Error fetching profile:', profileError);
   }
 
-  let shouldRefresh = false;
+  // Check and reset daily counts if necessary. 
+  // The revalidatePath inside the action will handle refreshing the data.
   if (profile) {
-    const resetResult = await checkAndResetDailyCounts(supabase, user.id, profile);
-    if (resetResult && resetResult.success) {
-      shouldRefresh = true;
-    }
-
+    await checkAndResetDailyCounts(supabase, user.id, profile);
+    
+    // Re-fetch profile data after potential reset to ensure UI is up-to-date
     const { data: updatedProfile, error: updatedProfileError } = await supabase
       .from('profiles')
-      .select('walk_count, conversation_count, battle_count, last_daily_reset, ranked_win, ranked_draw, ranked_lose, normal_win, normal_draw, normal_lose, language, country')
+      .select('walk_count, conversation_count, battle_count, last_daily_reset, ranked_win, ranked_draw, ranked_lose, normal_win, normal_draw, normal_lose, language, country, proton_actor')
       .eq('id', user.id)
       .single();
 
@@ -90,7 +89,6 @@ export default async function HomePageWrapper() {
         maxConversation={maxConversation}
         maxBattle={maxBattle}
         userCharacters={userCharacters}
-        shouldRefresh={shouldRefresh}
       />
     </LanguageProvider>
   );

@@ -2,38 +2,86 @@
 
 import AnimatedInis from './AnimatedInis'
 import { calculateInisStats } from '@/lib/inis/stats';
-import Link from 'next/link'; // Import Link
-import StyledButton from './components/StyledButton'; // Import StyledButton
-import { useState } from 'react'; // Import useState
-import BattleHistoryModal from './components/BattleHistoryModal'; // Import BattleHistoryModal
+import Link from 'next/link';
+import StyledButton from './components/StyledButton';
+import { useState, useEffect } from 'react';
+import BattleHistoryModal from './components/BattleHistoryModal';
 import { useLanguage } from '@/lib/i18n/LanguageProvider';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import ProtonWebSDK from '@proton/web-sdk';
+import { updateProtonActor } from './actions'; // Import the new server action
 
-export default function HomePageClient({ user, profile, walkCount, conversationCount, battleCount, maxWalk, maxConversation, maxBattle, userCharacters, shouldRefresh }) {
+export default function HomePageClient({ user, profile, walkCount, conversationCount, battleCount, maxWalk, maxConversation, maxBattle, userCharacters }) {
   const { t, language, changeLanguage } = useLanguage();
-  const [showBattleHistory, setShowBattleHistory] = useState(false); // State for showing battle history modal
+  const [showBattleHistory, setShowBattleHistory] = useState(false);
+  const [isLinking, setIsLinking] = useState(false);
+  const [linkError, setLinkError] = useState(null);
   const router = useRouter();
 
-  useEffect(() => {
-    if (shouldRefresh) {
-      router.refresh();
+  
+
+  const handleLinkProton = async () => {
+    setIsLinking(true);
+    setLinkError(null);
+    try {
+      const { session } = await ProtonWebSDK({
+        linkOptions: { endpoints: ['https://proton.greymass.com'] },
+        transportOptions: { requestAccount: 'inis-app' },
+        selectorOptions: { appName: 'Inis' },
+      });
+
+      if (session && session.auth.actor) {
+        const result = await updateProtonActor(session.auth.actor);
+        if (result.success) {
+          // The revalidatePath in the action will trigger a refresh.
+        } else {
+          setLinkError(result.error || 'Failed to link account.');
+        }
+      }
+    } catch (e) {
+      console.error('Proton link failed:', e);
+      setLinkError('An error occurred while linking the wallet.');
+    } finally {
+      setIsLinking(false);
     }
-  }, [shouldRefresh, router]);
+  };
 
   return (
-    <div style={{ padding: '0', margin: '0' }}> {/* Using a div as a wrapper */}
+    <div style={{ padding: '0', margin: '0' }}>
       <div style={{ padding: '20px', textAlign: 'center' }}>
-        <div style={{ position: 'absolute', top: '10px', right: '20px' }}>
-          <span>{user.email}{profile?.country && ` (${profile.country})`}</span>
-          <button onClick={() => setShowBattleHistory(true)} style={{ marginLeft: '10px', padding: '8px 12px', border: 'none', borderRadius: '5px', background: '#007bff', color: 'white', cursor: 'pointer' }}>
+        <div style={{ position: 'absolute', top: '10px', right: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div>
+            <span>{user.email}{profile?.country && ` (${profile.country})`}</span>
+            <div style={{ marginTop: '5px' }}>
+              {profile?.proton_actor ? (
+                <span style={{ fontSize: '12px', color: '#555' }}>{t('common.linkedAccount')}: {profile.proton_actor}</span>
+              ) : (
+                <button 
+                  onClick={handleLinkProton}
+                  disabled={isLinking}
+                  style={{
+                    backgroundColor: 'black',
+                    color: 'white',
+                    border: 'none',
+                    padding: '8px 12px',
+                    borderRadius: '5px',
+                    cursor: 'pointer',
+                    opacity: isLinking ? 0.7 : 1
+                  }}
+                >
+                  {isLinking ? t('common.linking') : t('common.linkWebAuth')}
+                </button>
+              )}
+              {linkError && <p style={{ color: 'red', fontSize: '12px', marginTop: '5px' }}>{linkError}</p>}
+            </div>
+          </div>
+          <button onClick={() => setShowBattleHistory(true)} style={{ padding: '8px 12px', border: 'none', borderRadius: '5px', background: '#007bff', color: 'white', cursor: 'pointer' }}>
             {t('common.viewBattleHistory')}
           </button>
-          <form action="/auth/signout" method="post" style={{ display: 'inline', marginLeft: '10px' }}>
+          <form action="/auth/signout" method="post" style={{ display: 'inline' }}>
             <button type="submit">{t('common.logout')}</button>
           </form>
-          {/* Language Selector */}
-          <select onChange={(e) => changeLanguage(e.target.value)} value={language} style={{ marginLeft: '10px', padding: '8px 12px', borderRadius: '5px', border: '1px solid #ccc' }}>
+          <select onChange={(e) => changeLanguage(e.target.value)} value={language} style={{ padding: '8px 12px', borderRadius: '5px', border: '1px solid #ccc' }}>
             <option value="en">🇺🇸 {t('common.english')}</option>
             <option value="ko">🇰🇷 {t('common.korean')}</option>
           </select>
@@ -74,7 +122,7 @@ export default function HomePageClient({ user, profile, walkCount, conversationC
               </div>
             ))
           ) : (
-            <div style={{ border: '1px dashed #ccc', borderRadius: '8px', height: '150px', width: '150px', display: 'flex', justifyContent: 'center', alignItems: 'center', margin: 'auto' }}>
+            <div style={{ border: '1.5px dashed #ccc', borderRadius: '8px', height: '150px', width: '150px', display: 'flex', justifyContent: 'center', alignItems: 'center', margin: 'auto' }}>
               <p style={{ fontSize: '12px' }}>{t('common.notAssigned')}<br/>{t('common.dbTriggerInfo')}</p>
             </div>
           )}
