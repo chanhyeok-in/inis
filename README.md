@@ -173,3 +173,12 @@ GEMINI는 사용자에 허가를 받아 git 에 커밋 및 푸시할 수 있습�
 3.  **일일 활동 및 이니스 이름 지정 기능 다국어 처리:**
     *   `src/app/daily-actions.js` 내 `performWalk`, `performConversation`, `nameInis` 함수에 사용되는 모든 사용자 메시지를 다국어 처리했습니다.
     *   새로운 다국어 키(`common.walkUpdateFailed`, `common.conversationUpdateFailed`, `common.nameRequired`, `common.countryUpdateFailed`, `common.inis`, `common.affectionIncreasedMessage`)를 `en.json` 및 `ko.json`에 추가했습니다.
+
+### 8. 국가 선택을 HEX 색상 코드로 변경
+- **정체성 색상 선택 기능 추가**:
+    - 기존의 국가 선택 기능을 사용자의 정체성을 나타내는 HEX 색상 코드를 입력하는 기능으로 변경했습니다.
+    - 사용자는 이니스 이름 짓기 페이지 (`/name-inis`)에서 `#`를 제외한 6자리 HEX 색상 코드를 한 번만 입력할 수 있습니다.
+    - 입력된 색상 코드는 `profiles` 테이블의 `color` 컬럼(`VARCHAR(6)`)에 저장됩니다.
+    - 메인 페이지의 사용자 이메일 옆에 선택한 색상이 작은 사각형으로 표시되어 자신의 정체성을 시각적으로 나타냅니다.
+- **데이터베이스 스키마 변경**:
+    - `profiles` 테이블의 `country` 컬럼을 `color`로 이름을 변경하고, 타입을 `VARCHAR(6)`로 수정했습니다.

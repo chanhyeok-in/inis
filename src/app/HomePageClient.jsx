@@ -51,7 +51,14 @@ export default function HomePageClient({ user, profile, walkCount, conversationC
       <div style={{ padding: '20px', textAlign: 'center' }}>
         <div style={{ position: 'absolute', top: '10px', right: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div>
-            <span>{user.email}{profile?.country && ` (${profile.country})`}</span>
+            <span>
+          {user.email}
+          {profile?.color && (
+            <span style={{ marginLeft: '8px', display: 'inline-flex', alignItems: 'center', gap: '4px' }} title={`#${profile.color}`}>
+              <span style={{ width: '14px', height: '14px', backgroundColor: `#${profile.color}`, border: '1px solid #ccc', borderRadius: '3px' }}></span>
+            </span>
+          )}
+        </span>
             <div style={{ marginTop: '5px' }}>
               {profile?.proton_actor ? (
                 <span style={{ fontSize: '12px', color: '#555' }}>{t('common.linkedAccount')}: {profile.proton_actor}</span>
@@ -69,7 +76,7 @@ export default function HomePageClient({ user, profile, walkCount, conversationC
                     opacity: isLinking ? 0.7 : 1
                   }}
                 >
-                  {isLinking ? t('common.linking') : t('common.linkWebAuth')}
+                  {isLinking ? 'Linking...' : 'Login with WebAuth'}
                 </button>
               )}
               {linkError && <p style={{ color: 'red', fontSize: '12px', marginTop: '5px' }}>{linkError}</p>}

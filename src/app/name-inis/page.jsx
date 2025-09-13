@@ -28,7 +28,7 @@ export default function NameInisPage() {
       // Fetch profile data
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
-        .select('country')
+        .select('color')
         .eq('id', user.id)
         .single();
 
@@ -105,18 +105,24 @@ export default function NameInisPage() {
           style={{ padding: '10px', borderRadius: '5px', border: '1px solid #ccc' }}
         />
 
-        {profile && !profile.country && (
-          <select
-            name="country"
-            required
-            style={{ padding: '10px', borderRadius: '5px', border: '1px solid #ccc' }}
-          >
-            <option value="">국가 선택</option>
-            <option value="KR">대한민국</option>
-            <option value="US">미국</option>
-            <option value="JP">일본</option>
-            <option value="CN">중국</option>
-          </select>
+        {profile && !profile.color && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <span style={{
+              fontFamily: 'monospace',
+              fontSize: '1.2em',
+              color: '#999',
+            }}>#</span>
+            <input
+              type="text"
+              name="color"
+              required
+              placeholder="HEX 색상 코드 (예: AABBCC)"
+              pattern="[A-Fa-f0-9]{6}"
+              maxLength={6}
+              title="6자리 HEX 색상 코드를 입력하세요 (A-F, 0-9)."
+              style={{ padding: '10px', borderRadius: '5px', border: '1px solid #ccc', flex: 1 }}
+            />
+          </div>
         )}
 
         <StyledButton type="submit">

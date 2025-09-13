@@ -123,7 +123,7 @@
     "walkUpdateFailed": "Failed to update walk count.",
     "conversationUpdateFailed": "Failed to update conversation count.",
     "nameRequired": "Name is required.",
-    "countryUpdateFailed": "Name saved successfully, but failed to update country information.",
+    "colorUpdateFailed": "Name saved successfully, but failed to update color information.",
     "inis": "Inis",
     "affectionIncreasedMessage": "Feeling much better! (Affection +1)",
     "linkWebAuth": "Login with WebAuth",

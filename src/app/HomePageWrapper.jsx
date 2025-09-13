@@ -16,7 +16,7 @@ export default async function HomePageWrapper() {
   // Fetch profile, including proton_actor
   let { data: profile, error: profileError } = await supabase
     .from('profiles')
-    .select('walk_count, conversation_count, battle_count, last_daily_reset, ranked_win, ranked_draw, ranked_lose, normal_win, normal_draw, normal_lose, language, country, proton_actor')
+    .select('walk_count, conversation_count, battle_count, last_daily_reset, ranked_win, ranked_draw, ranked_lose, normal_win, normal_draw, normal_lose, language, color, proton_actor')
     .eq('id', user.id)
     .single();
 
@@ -32,7 +32,7 @@ export default async function HomePageWrapper() {
     // Re-fetch profile data after potential reset to ensure UI is up-to-date
     const { data: updatedProfile, error: updatedProfileError } = await supabase
       .from('profiles')
-      .select('walk_count, conversation_count, battle_count, last_daily_reset, ranked_win, ranked_draw, ranked_lose, normal_win, normal_draw, normal_lose, language, country, proton_actor')
+      .select('walk_count, conversation_count, battle_count, last_daily_reset, ranked_win, ranked_draw, ranked_lose, normal_win, normal_draw, normal_lose, language, color, proton_actor')
       .eq('id', user.id)
       .single();
 

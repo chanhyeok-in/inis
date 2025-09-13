@@ -123,10 +123,10 @@
     "walkUpdateFailed": "산책 횟수 업데이트에 실패했습니다.",
     "conversationUpdateFailed": "대화 횟수 업데이트에 실패했습니다.",
     "nameRequired": "이름을 입력해주세요.",
-    "countryUpdateFailed": "이름은 저장되었지만, 국가 정보 업데이트에 실패했습니다.",
+    "colorUpdateFailed": "이름은 저장되었지만, 색상 정보 업데이트에 실패했습니다.",
     "inis": "이니스",
     "affectionIncreasedMessage": "기분이 매우 좋아졌습니다 ! (유대감 +1)",
-    "linkWebAuth": "WebAuth 연동",
+    "linkWebAuth": "WebAuth 로 로그인",
     "linking": "연동 중...",
     "linkedAccount": "연동된 계정"
   }

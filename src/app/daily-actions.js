@@ -598,7 +598,7 @@ export async function nameInis(prevState, formData) {
 
   const inisId = formData.get('inisId');
   const inisName = formData.get('inisName');
-  const country = formData.get('country'); // Get country from form data
+  const color = formData.get('color'); // Get color from form data
 
   const numericInisId = parseInt(inisId, 10);
 
@@ -638,18 +638,18 @@ export async function nameInis(prevState, formData) {
     return { success: false, message: t('common.saveFailed') };
   }
 
-  // If country is provided, update profile
-  if (country) {
-    const { error: countryError } = await supabase
+  // If color is provided, update profile
+  if (color) {
+    const { error: colorError } = await supabase
       .from('profiles')
-      .update({ country: country })
+      .update({ color: color })
       .eq('id', user.id);
 
-    if (countryError) {
-      console.error('Error updating country:', countryError);
-      // Even if country update fails, the name was successful.
+    if (colorError) {
+      console.error('Error updating color:', colorError);
+      // Even if color update fails, the name was successful.
       // You might want to return a specific message for this case.
-      return { success: true, message: t('common.countryUpdateFailed') };
+      return { success: true, message: t('common.colorUpdateFailed') };
     }
   }
 
