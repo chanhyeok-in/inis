@@ -18,7 +18,7 @@ export default function LoginPage() {
   // Restore session on component mount from localStorage
   useEffect(() => {
     const savedSession = localStorage.getItem('proton-session');
-    if (savedSession) {
+    if (savedSession && savedSession !== 'undefined') {
       try {
         const restoredSession = JSON.parse(savedSession);
         setProtonSession(restoredSession);
@@ -32,9 +32,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      // A magic link sign-in completes with a SIGNED_IN event and a new session.
       if (event === 'SIGNED_IN') {
-        // Redirect to home page on any sign in, including magic link completion.
         window.location.href = '/'
       }
     })
@@ -45,39 +43,28 @@ export default function LoginPage() {
   const handleProtonLogin = async () => {
     setIsLoading(true);
     try {
-      // 1. Connect to Proton Wallet
       const { session } = await ProtonWebSDK({
-        linkOptions: {
-          endpoints: ['https://proton.greymass.com'],
-        },
-        transportOptions: {
-          requestAccount: appIdentifier,
-        },
-        selectorOptions: {
-          appName: 'Inis',
-        },
+        linkOptions: { endpoints: ['https://proton.greymass.com'] },
+        transportOptions: { requestAccount: appIdentifier },
+        selectorOptions: { appName: 'Inis' },
       });
       
-      setProtonSession(session);
-      localStorage.setItem('proton-session', JSON.stringify(session));
-      console.log('Proton login successful:', session.auth.actor);
+      if (session && session.auth && session.auth.actor) {
+        setProtonSession(session);
+        localStorage.setItem('proton-session', JSON.stringify(session));
+        console.log('Proton login successful:', session.auth.actor);
 
-      // 2. Call server action to get a magic link
-      const result = await protonLoginAction(session.auth.actor);
-      
-      if (result.success && result.magicLink) {
-        // 3. Use the magic link to complete the sign-in process.
-        // The onAuthStateChange listener will detect the SIGNED_IN event and redirect.
-        const { error } = await supabase.auth.verifyOtp({ 
-          type: 'magiclink', 
-          token: result.magicLink.split('token=')[1] 
-        });
-        if (error) {
-          console.error('Magic link sign-in error:', error);
+        const result = await protonLoginAction(session.auth.actor);
+        
+        if (result.success && result.magicLink) {
+          // Redirect the user to the magic link to complete authentication
+          window.location.href = result.magicLink;
+        } else {
+          console.error('Failed to get magic link from server:', result.error);
           setIsLoading(false);
         }
       } else {
-        console.error('Failed to get magic link from server:', result.error);
+        console.log('Proton login was not completed or failed.');
         setIsLoading(false);
       }
 
@@ -89,7 +76,7 @@ export default function LoginPage() {
 
   const handleProtonLogout = async () => {
     localStorage.removeItem('proton-session');
-    await supabase.auth.signOut(); // Also sign out from Supabase session
+    await supabase.auth.signOut();
     setProtonSession(null);
     console.log('Proton and Supabase logout successful');
   }

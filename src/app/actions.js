@@ -60,29 +60,30 @@ export async function protonLoginAction(actor) {
 
   const supabaseAdmin = getSupabaseAdminClient();
 
-  // 1. Check if user with this proton_actor already exists
-  let { data: profile, error: profileError } = await supabaseAdmin
+  const { data: profile, error: profileError } = await supabaseAdmin
     .from('profiles')
-    .select('id, name') // also select name
+    .select('id, username')
     .eq('proton_actor', actor)
     .single();
 
-  if (profileError && profileError.code !== 'PGRST116') { // PGRST116 = no rows found
-    console.error('Error finding profile:', profileError);
-    return { success: false, error: 'Database error while checking profile.' };
+  if (profileError && profileError.code !== 'PGRST116') {
+    console.error('RAW DB ERROR:', profileError);
+    return { success: false, error: `Database Error: ${profileError.message}` };
   }
 
-  let userId;
-  let userName;
+  let emailForMagicLink;
   if (profile) {
-    // User exists, get their ID and name
-    userId = profile.id;
-    userName = profile.name;
+    const { data: authUser, error: getUserError } = await supabaseAdmin.auth.admin.getUserById(profile.id);
+    if (getUserError) {
+      console.error('Error fetching user from auth:', getUserError);
+      return { success: false, error: 'Could not find user auth details.' };
+    }
+    emailForMagicLink = authUser.user.email;
   } else {
-    // 2. User does not exist, create a new one
-    userName = actor; // Default username to actor
+    emailForMagicLink = `${actor}@proton.local`;
+    const userName = actor;
     const { data: newUser, error: newUserError } = await supabaseAdmin.auth.admin.createUser({
-      email: `${actor}@proton.local`,
+      email: emailForMagicLink,
       password: Math.random().toString(36).slice(-8),
       email_confirm: true,
     });
@@ -92,32 +93,33 @@ export async function protonLoginAction(actor) {
       return { success: false, error: 'Could not create a new user.' };
     }
 
-    userId = newUser.user.id;
-
-    // 3. Create a corresponding profile for the new user
     const { error: newProfileError } = await supabaseAdmin
       .from('profiles')
-      .insert({ id: userId, proton_actor: actor, name: userName });
+      .insert({ id: newUser.user.id, proton_actor: actor, username: userName });
 
     if (newProfileError) {
       console.error('Error creating new profile:', newProfileError);
-      await supabaseAdmin.auth.admin.deleteUser(userId); // Clean up created user
+      await supabaseAdmin.auth.admin.deleteUser(newUser.user.id);
       return { success: false, error: 'Could not create a new user profile.' };
     }
   }
 
-  // 4. Generate a magic link for the user to sign in.
+  // Determine the redirect URL based on the environment
+  const redirectTo = process.env.NODE_ENV === 'development' 
+    ? 'http://localhost:3003/auth/callback' 
+    : 'https://inis-iota.vercel.app/auth/callback';
+
   const { data, error } = await supabaseAdmin.auth.admin.generateLink({
     type: 'magiclink',
-    email: `${actor}@proton.local`,
+    email: emailForMagicLink,
+    options: { redirectTo }
   });
 
   if (error) {
-    console.error('Error generating magic link:', error);
-    return { success: false, error: 'Could not generate sign-in link.' };
+    console.error('Magic link generation failed:', error);
+    return { success: false, error: `Magic Link Error: ${error.message}` };
   }
 
-  // The client will use this to sign in.
   return { success: true, magicLink: data.properties.action_link };
 }
 
@@ -133,13 +135,12 @@ export async function updateProtonActor(actor) {
     return { success: false, error: 'User not authenticated.' };
   }
 
-  // Check if the actor is already linked to another account
   const supabaseAdmin = getSupabaseAdminClient();
   const { data: existingProfile, error: existingProfileError } = await supabaseAdmin
     .from('profiles')
     .select('id')
     .eq('proton_actor', actor)
-    .not('id', 'eq', user.id) // Exclude the current user
+    .not('id', 'eq', user.id)
     .single();
 
   if (existingProfileError && existingProfileError.code !== 'PGRST116') {
@@ -151,7 +152,6 @@ export async function updateProtonActor(actor) {
     return { success: false, error: 'This Proton account is already linked to another user.' };
   }
 
-  // Update the current user's profile
   const { error: updateError } = await supabase
     .from('profiles')
     .update({ proton_actor: actor })
@@ -162,6 +162,6 @@ export async function updateProtonActor(actor) {
     return { success: false, error: 'Failed to link account.' };
   }
 
-  revalidatePath('/'); // Revalidate the home page to show the new state
+  revalidatePath('/');
   return { success: true };
 }
